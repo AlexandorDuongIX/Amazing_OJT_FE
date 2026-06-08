@@ -18,7 +18,7 @@ interface NavLink {
 }
 
 const navLinks: NavLink[] = [
-  { label: 'Nam', href: '#', active: true },
+  { label: 'Nam', href: '#' },
   { label: 'Nữ', href: '#' },
   { label: 'Phụ kiện', href: '#' },
   { label: 'Blog', href: '#' },
@@ -65,7 +65,7 @@ export default function Navbar() {
                 href={link.href}
                 className={`font-label text-[14px] font-semibold uppercase tracking-[0.1em] transition-colors duration-300 ${
                   link.active
-                    ? 'text-primary border-b border-primary pb-1'
+                    ? 'text-primary'
                     : 'text-on-surface-variant hover:text-secondary-fixed-dim'
                 }`}
               >
