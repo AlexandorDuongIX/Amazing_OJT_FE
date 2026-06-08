@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import Button from '../components/Button'
+import Button from '../../components/Button'
 
 /* ============================================================
-   HomePage — AMAZING Clothing Shop
+   HomePage — AMAZING Clothing Shop (Customer Page)
    ============================================================
    Sections:
    1. Hero (full-width, bg image, CTA)
