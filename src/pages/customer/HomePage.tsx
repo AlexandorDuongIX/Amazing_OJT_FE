@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import Button from '../../components/Button'
 
 /* ============================================================
@@ -64,7 +65,7 @@ interface CategoryCardProps {
 
 function CategoryCard({ href, image, title, subtitle = 'Khám phá', className = '', imgPosition = 'object-center' }: CategoryCardProps) {
   return (
-    <a href={href} className={`group relative overflow-hidden block ${className}`}>
+    <Link to={href} className={`group relative overflow-hidden block ${className}`}>
       <img
         src={image}
         alt={title}
@@ -80,7 +81,7 @@ function CategoryCard({ href, image, title, subtitle = 'Khám phá', className =
           <span className="material-symbols-outlined ml-2 text-[18px]">arrow_forward</span>
         </p>
       </div>
-    </a>
+    </Link>
   )
 }
 
@@ -103,7 +104,7 @@ function CategoriesSection() {
       <div className="grid grid-cols-1 md:grid-cols-12 gap-gutter auto-rows-[400px] md:auto-rows-[600px]">
         {/* Women (Large) */}
         <CategoryCard
-          href="#"
+          href="/collections/nu"
           image={IMAGES.women}
           title="Thời trang Nữ"
           className="col-span-1 md:col-span-8"
@@ -114,7 +115,7 @@ function CategoriesSection() {
         <div className="col-span-1 md:col-span-4 grid grid-rows-2 gap-gutter h-full">
           {/* Men */}
           <CategoryCard
-            href="#"
+            href="/collections/nam"
             image={IMAGES.men}
             title="Thời trang Nam"
             subtitle="Xem thêm"
@@ -122,7 +123,7 @@ function CategoriesSection() {
           />
           {/* Accessories */}
           <CategoryCard
-            href="#"
+            href="/collections/phu-kien"
             image={IMAGES.accessories}
             title="Phụ kiện cao cấp"
             subtitle="Xem thêm"

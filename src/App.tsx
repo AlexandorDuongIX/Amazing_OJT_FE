@@ -1,7 +1,9 @@
+import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import HomePage from './pages/customer/HomePage'
+import ProductListPage from './pages/customer/ProductListPage'
 import AdminLayout from './components/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
 
@@ -10,11 +12,25 @@ function CustomerLayout() {
     <>
       <Navbar />
       <main className="pt-[80px]">
-        <HomePage />
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/collections" element={<ProductListPage />} />
+          <Route path="/collections/:category" element={<ProductListPage />} />
+          <Route path="*" element={<HomePage />} />
+        </Routes>
       </main>
       <Footer />
     </>
   )
+}
+
+/* ── Scroll to top on every route change ── */
+function ScrollToTop() {
+  const { pathname } = useLocation()
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [pathname])
+  return null
 }
 
 function RoleSwitcher() {
@@ -50,10 +66,11 @@ function RoleSwitcher() {
 function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <div className="bg-background text-on-background font-body antialiased selection:bg-secondary-container selection:text-on-secondary-container min-h-screen">
         <Routes>
           {/* Customer Routes */}
-          <Route path="/" element={<CustomerLayout />} />
+          <Route path="/*" element={<CustomerLayout />} />
           
           {/* Admin Routes */}
           <Route
@@ -64,9 +81,6 @@ function App() {
               </AdminLayout>
             }
           />
-          
-          {/* Catch-all redirect to Home */}
-          <Route path="*" element={<CustomerLayout />} />
         </Routes>
         
         {/* Floating Switcher for Easy Testing */}
