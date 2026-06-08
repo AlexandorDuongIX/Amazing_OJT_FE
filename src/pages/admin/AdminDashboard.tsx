@@ -86,7 +86,7 @@ function RevenueChart() {
           </button>
         </div>
       </div>
-      <div className="h-80 w-full relative overflow-hidden" style={{ background: 'linear-gradient(180deg, rgba(115, 92, 0, 0.08) 0%, rgba(115, 92, 0, 0) 100%)' }}>
+      <div className="h-80 w-full relative overflow-hidden bg-gradient-to-b from-[rgba(115,92,0,0.08)] to-[rgba(115,92,0,0)]">
         {/* Grid Lines */}
         <div className="absolute inset-0 flex flex-col justify-between py-4 opacity-20">
           <div className="w-full h-[1px] bg-outline-variant" />
@@ -205,6 +205,8 @@ export default function AdminDashboard() {
           <select
             value={_timePeriod}
             onChange={(e) => setTimePeriod(e.target.value)}
+            title="Chọn khoảng thời gian"
+            aria-label="Chọn khoảng thời gian"
             className="bg-transparent border-none focus:ring-0 focus:outline-none font-body text-label-md uppercase tracking-wider cursor-pointer"
           >
             <option value="this-month">Tháng này (Tháng 12, 2024)</option>
@@ -274,14 +276,7 @@ export default function AdminDashboard() {
               {ORDERS.map((order) => (
                 <tr
                   key={order.id}
-                  className="hover:bg-surface-container-low transition-all duration-300 cursor-pointer group"
-                  style={{ transition: 'transform 0.3s ease, background-color 0.2s' }}
-                  onMouseEnter={(e) => {
-                    ; (e.currentTarget as HTMLElement).style.transform = 'translateX(8px)'
-                  }}
-                  onMouseLeave={(e) => {
-                    ; (e.currentTarget as HTMLElement).style.transform = 'translateX(0px)'
-                  }}
+                  className="transform transition-all duration-300 hover:translate-x-2 hover:bg-surface-container-low cursor-pointer group"
                 >
                   <td className="p-6 font-bold">{order.id}</td>
                   <td className="p-6">
