@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import Button from '../../components/Button'
-import Icon from '../../components/Icon'
 
 /* ============================================================
    HomePage — AMAZING Clothing Shop (Customer Page)
@@ -79,7 +78,7 @@ function CategoryCard({ href, image, title, subtitle = 'Khám phá', className =
         </h3>
         <p className="font-label text-[12px] md:text-[14px] font-semibold text-surface uppercase tracking-widest flex items-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-4 group-hover:translate-y-0">
           {subtitle}
-          <Icon name="arrow-right" size={18} className="ml-2" />
+          <span className="material-symbols-outlined ml-2 text-[18px]">arrow_forward</span>
         </p>
       </div>
     </Link>
@@ -208,7 +207,9 @@ function BlogSection() {
             className="inline-flex items-center text-primary font-label text-[14px] font-semibold uppercase tracking-widest hover:text-secondary-fixed-dim transition-colors group w-fit"
           >
             Đọc tiếp
-            <Icon name="arrow-right" size={18} className="ml-2 transform group-hover:translate-x-1 transition-transform" />
+            <span className="material-symbols-outlined ml-2 transform group-hover:translate-x-1 transition-transform">
+              arrow_right_alt
+            </span>
           </a>
         </div>
       </div>
@@ -231,7 +232,9 @@ function NewsletterSection() {
   return (
     <section className="py-24 bg-tertiary text-on-tertiary px-margin-mobile md:px-margin-desktop text-center">
       <div className="max-w-2xl mx-auto">
-        <Icon name="mail" size={32} className="mx-auto mb-6 text-secondary-container" />
+        <span className="material-symbols-outlined text-[32px] mb-6 text-secondary-container">
+          mail
+        </span>
         <h2 className="font-headline text-[32px] font-medium mb-4">
           Tham gia cùng AMAZING
         </h2>

@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import Icon, { type IconName } from '../../components/Icon'
 
 /* ============================================================
    AdminDashboard — AMAZING Luxury Admin
@@ -40,22 +39,6 @@ function getStatusStyle(status: Order['status']) {
   }
 }
 
-function toIconName(icon: string): IconName {
-  const icons: Record<string, IconName> = {
-    payments: 'payments',
-    shopping_cart: 'cart',
-    person_add: 'person-add',
-    apparel: 'apparel',
-    confirmation_number: 'ticket',
-    edit_note: 'edit-note',
-    add_business: 'add-business',
-    calendar_today: 'calendar',
-    chevron_right: 'chevron-right',
-  }
-
-  return icons[icon] ?? 'dashboard'
-}
-
 /* ---------- KPI Card ---------- */
 interface KpiCardProps {
   icon: string
@@ -71,7 +54,7 @@ function KpiCard({ icon, label, value, unit, badge, badgeColor = 'text-secondary
     <div className="bg-surface-container-lowest border border-outline-variant p-8 relative overflow-hidden group">
       <div className="flex justify-between items-start mb-6">
         <div className="p-3 bg-tertiary-container text-on-tertiary">
-          <Icon name={toIconName(icon)} size={24} />
+          <span className="material-symbols-outlined">{icon}</span>
         </div>
         <span className={`${badgeColor} font-semibold text-caption`}>{badge}</span>
       </div>
@@ -174,12 +157,14 @@ function QuickActions() {
               className="w-full flex items-center justify-between p-4 border border-on-tertiary/20 hover:border-secondary hover:text-secondary transition-all group cursor-pointer"
             >
               <div className="flex items-center gap-4">
-                <Icon name={toIconName(action.icon)} size={24} />
+                <span className="material-symbols-outlined">{action.icon}</span>
                 <span className="font-body text-label-md uppercase tracking-widest">
                   {action.label}
                 </span>
               </div>
-              <Icon name="chevron-right" size={24} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+              <span className="material-symbols-outlined opacity-0 group-hover:opacity-100 transition-opacity">
+                chevron_right
+              </span>
             </button>
           ))}
         </div>
@@ -216,7 +201,7 @@ export default function AdminDashboard() {
 
         </div>
         <div className="flex items-center gap-4 bg-surface-container-low px-4 py-2 border border-outline-variant">
-          <Icon name="calendar" size={24} className="text-secondary" />
+          <span className="material-symbols-outlined text-secondary">calendar_today</span>
           <select
             value={_timePeriod}
             onChange={(e) => setTimePeriod(e.target.value)}

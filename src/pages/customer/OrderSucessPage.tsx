@@ -1,5 +1,4 @@
 import Button from '../../components/Button'
-import Icon from '../../components/Icon'
 
 interface Order {
   id?: string
@@ -15,7 +14,9 @@ export default function OrderSuccessPage() {
 
   return (
     <div className="max-w-3xl mx-auto text-center py-section-gap">
-      <Icon name="check-circle" size={120} className="mx-auto text-secondary" />
+      <span className="material-symbols-outlined text-[120px] text-secondary">
+        check_circle
+      </span>
 
       <h1 className="text-5xl font-headline mt-6 mb-6">
         Thanh toán thành công

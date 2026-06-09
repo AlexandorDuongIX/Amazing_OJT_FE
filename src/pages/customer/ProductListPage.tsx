@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import axios from 'axios'
-import Icon from '../../components/Icon'
 
 /* ============================================================
    ProductListPage — AMAZING Clothing Shop (Customer Page)
@@ -96,13 +95,14 @@ function ProductCard({ product }: ProductCardProps) {
           onClick={() => setWished((w) => !w)}
           aria-label="Thêm vào yêu thích"
         >
-          <Icon
-            name="heart"
-            size={20}
-            className={`transition-colors duration-200 ${
-              wished ? 'fill-current text-error' : 'text-on-surface hover:text-secondary'
+          <span
+            className={`material-symbols-outlined text-[20px] transition-colors duration-200 ${
+              wished ? 'text-error' : 'text-on-surface hover:text-secondary'
             }`}
-          />
+            style={wished ? { fontVariationSettings: "'FILL' 1" } : {}}
+          >
+            favorite
+          </span>
         </button>
 
         {/* Add to Cart — Slides up on hover */}
@@ -294,7 +294,7 @@ export default function ProductListPage() {
       {/* ── States ── */}
       {error && (
         <div className="text-center py-20">
-          <Icon name="error-circle" size={48} className="mx-auto mb-4 text-error" />
+          <span className="material-symbols-outlined text-[48px] text-error mb-4 block">error</span>
           <p className="font-body text-error text-[16px]">{error}</p>
           <button
             onClick={() => window.location.reload()}
@@ -319,7 +319,9 @@ export default function ProductListPage() {
       {/* ── Empty state ── */}
       {!loading && !error && filteredProducts.length === 0 && (
         <div className="text-center py-20">
-          <Icon name="search-off" size={48} className="mx-auto mb-4 text-on-surface-variant" />
+          <span className="material-symbols-outlined text-[48px] text-on-surface-variant mb-4 block">
+            search_off
+          </span>
           <p className="font-body text-on-surface-variant text-[16px]">
             Không tìm thấy sản phẩm phù hợp với bộ lọc đã chọn.
           </p>

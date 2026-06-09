@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import Logo from './Logo'
-import Icon from './Icon'
 
 /* ============================================================
    Navbar Component — AMAZING Design System
@@ -61,7 +60,7 @@ export default function Navbar() {
             onClick={() => setMobileMenuOpen(true)}
             aria-label="Mở menu"
           >
-            <Icon name="menu" size={24} />
+            <span className="material-symbols-outlined text-[24px]">menu</span>
           </button>
 
           {/* Desktop Navigation Links */}
@@ -101,16 +100,16 @@ export default function Navbar() {
           {/* Trailing Icons */}
           <div className="flex items-center gap-4">
             <button className="text-primary hover:text-secondary-fixed-dim scale-95 active:scale-100 transition-transform cursor-pointer" aria-label="Tìm kiếm">
-              <Icon name="search" size={24} />
+              <span className="material-symbols-outlined text-[24px]">search</span>
             </button>
             <button className="text-primary hover:text-secondary-fixed-dim scale-95 active:scale-100 transition-transform cursor-pointer hidden md:block" aria-label="Yêu thích">
-              <Icon name="heart" size={24} />
+              <span className="material-symbols-outlined text-[24px]">favorite</span>
             </button>
             <Link to="/login" className="text-primary hover:text-secondary-fixed-dim scale-95 active:scale-100 transition-transform cursor-pointer hidden md:block" aria-label="Tài khoản">
-              <Icon name="user" size={24} />
+              <span className="material-symbols-outlined text-[24px]">person</span>
             </Link>
             <button className="text-primary hover:text-secondary-fixed-dim scale-95 active:scale-100 transition-transform cursor-pointer relative" aria-label="Giỏ hàng">
-              <Icon name="shopping-bag" size={24} />
+              <span className="material-symbols-outlined text-[24px]">shopping_bag</span>
               <span className="absolute -top-1 -right-1 bg-tertiary text-on-tertiary text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
                 {cartCount}
               </span>
@@ -138,7 +137,7 @@ export default function Navbar() {
                 className="text-primary cursor-pointer"
                 aria-label="Đóng menu"
               >
-                <Icon name="close" size={24} />
+                <span className="material-symbols-outlined">close</span>
               </button>
             </div>
             <div className="flex flex-col gap-6">
@@ -165,10 +164,10 @@ export default function Navbar() {
             </div>
             <div className="mt-auto flex items-center gap-6 pt-8 border-t border-outline-variant/30">
               <button className="text-on-surface-variant hover:text-primary transition-colors cursor-pointer" aria-label="Yêu thích">
-                <Icon name="heart" size={24} />
+                <span className="material-symbols-outlined">favorite</span>
               </button>
               <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="text-on-surface-variant hover:text-primary transition-colors cursor-pointer" aria-label="Tài khoản">
-                <Icon name="user" size={24} />
+                <span className="material-symbols-outlined">person</span>
               </Link>
             </div>
           </nav>

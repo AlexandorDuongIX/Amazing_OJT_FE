@@ -1,6 +1,5 @@
 import { type FormEvent, type ReactNode, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import Icon, { type IconName } from '../../components/Icon'
 import { useAuthStore } from '../stores/authStore'
 
 const AUTH_IMAGES = {
@@ -72,7 +71,7 @@ interface AuthFieldProps {
   onChange: (value: string) => void
   error?: string
   autoComplete?: string
-  icon: IconName
+  icon: string
   type?: string
 }
 
@@ -99,7 +98,9 @@ function AuthField({
           error ? 'border-error' : 'border-outline'
         }`}
       >
-        <Icon name={icon} size={20} className="mr-[10px] text-on-surface-variant" />
+        <span className="material-symbols-outlined mr-[10px] text-[20px] text-on-surface-variant">
+          {icon}
+        </span>
         <input
           id={id}
           type={type}
@@ -153,7 +154,9 @@ function PasswordField({
           error ? 'border-error' : 'border-outline'
         }`}
       >
-        <Icon name="lock" size={20} className="mr-[10px] text-on-surface-variant" />
+        <span className="material-symbols-outlined mr-[10px] text-[20px] text-on-surface-variant">
+          lock
+        </span>
         <input
           id={id}
           type={visible ? 'text' : 'password'}
@@ -171,7 +174,9 @@ function PasswordField({
           className="ml-2 flex text-primary transition-colors hover:text-secondary"
           aria-label={visible ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
         >
-          <Icon name={visible ? 'eye-off' : 'eye'} size={22} />
+          <span className="material-symbols-outlined text-[22px]">
+            {visible ? 'visibility_off' : 'visibility'}
+          </span>
         </button>
       </div>
       {error && (
@@ -272,7 +277,7 @@ export function LoginPage() {
             type="button"
             className="mx-auto flex h-[40px] w-[151px] items-center justify-center gap-4 rounded-[7px] bg-primary font-body text-[14px] font-normal uppercase text-on-primary shadow-[0_4px_4px_rgba(0,0,0,0.25)] transition-colors hover:bg-secondary"
           >
-            <Icon name="mail" size={18} />
+            <span className="material-symbols-outlined text-[18px]">mail</span>
             EMAIL
           </button>
         </form>
