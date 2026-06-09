@@ -1,14 +1,9 @@
+import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom'
 
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import HomePage from './pages/customer/HomePage'
-
-import CartPage from './pages/customer/CartPage'
-import CheckoutPage from './pages/customer/CheckoutPage'
-import PaymentPage from './pages/customer/PaymentPage'
-import OrderSuccessPage from './pages/customer/OrderSucessPage'
-
 import AdminLayout from './components/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminOrders from './pages/admin/AdminOrders'
@@ -19,11 +14,20 @@ function CustomerLayout({ children }: { children?: React.ReactNode }) {
     <>
       <Navbar />
       <main className="pt-[80px]">
-        {children ?? <HomePage />}
+        <HomePage />
       </main>
       <Footer />
     </>
   )
+}
+
+/* ── Scroll to top on every route change ── */
+function ScrollToTop() {
+  const { pathname } = useLocation()
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [pathname])
+  return null
 }
 
 function RoleSwitcher() {
@@ -60,56 +64,13 @@ function RoleSwitcher() {
 function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <div className="bg-background text-on-background font-body antialiased selection:bg-secondary-container selection:text-on-secondary-container min-h-screen">
         <Routes>
 
           {/* Customer Routes */}
-
-          <Route
-            path="/"
-            element={
-              <CustomerLayout>
-                <HomePage />
-              </CustomerLayout>
-            }
-          />
-
-          <Route
-            path="/cart"
-            element={
-              <CustomerLayout>
-                <CartPage />
-              </CustomerLayout>
-            }
-          />
-
-          <Route
-            path="/checkout"
-            element={
-              <CustomerLayout>
-                <CheckoutPage />
-              </CustomerLayout>
-            }
-          />
-
-          <Route
-            path="/payment"
-            element={
-              <CustomerLayout>
-                <PaymentPage />
-              </CustomerLayout>
-            }
-          />
-
-          <Route
-            path="/success"
-            element={
-              <CustomerLayout>
-                <OrderSuccessPage />
-              </CustomerLayout>
-            }
-          />
-
+          <Route path="/" element={<CustomerLayout />} />
+          
           {/* Admin Routes */}
 
           <Route
@@ -120,35 +81,9 @@ function App() {
               </AdminLayout>
             }
           />
-
-          <Route
-            path="/admin/orders"
-            element={
-              <AdminLayout>
-                <AdminOrders />
-              </AdminLayout>
-            }
-          />
-
-          <Route
-            path="/admin/payments"
-            element={
-              <AdminLayout>
-                <AdminPayments />
-              </AdminLayout>
-            }
-          />
-
+          
           {/* Catch-all redirect to Home */}
-
-          <Route
-            path="*"
-            element={
-              <CustomerLayout>
-                <HomePage />
-              </CustomerLayout>
-            }
-          />
+          <Route path="*" element={<CustomerLayout />} />
         </Routes>
 
         <RoleSwitcher />

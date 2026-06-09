@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import Logo from './Logo'
 
 /* ============================================================
@@ -9,25 +10,30 @@ import Logo from './Logo'
    - Desktop nav links left / action icons right
    - Mobile hamburger menu
    - Shadow on scroll
+   - Active underline animates smoothly via CSS transition
    ============================================================ */
 
 interface NavLink {
   label: string
-  href: string
-  active?: boolean
+  to: string
+  matchPrefix?: string
 }
 
 const navLinks: NavLink[] = [
-  { label: 'Nam', href: '#' },
-  { label: 'Nữ', href: '#' },
-  { label: 'Phụ kiện', href: '#' },
-  { label: 'Blog', href: '#' },
+  { label: 'Nam', to: '/collections/nam', matchPrefix: '/collections/nam' },
+  { label: 'Nữ', to: '/collections/nu', matchPrefix: '/collections/nu' },
+  { label: 'Phụ kiện', to: '/collections/phu-kien', matchPrefix: '/collections/phu-kien' },
+  { label: 'Blog', to: '#' },
 ]
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [cartCount] = useState(0)
+  const location = useLocation()
+
+  const isActive = (link: NavLink) =>
+    !!link.matchPrefix && location.pathname.startsWith(link.matchPrefix)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -59,29 +65,37 @@ export default function Navbar() {
 
           {/* Desktop Navigation Links */}
           <nav className="hidden md:flex items-center gap-gutter">
-            {navLinks.map((link) => (
-              <a
-                key={link.label}
-                href={link.href}
-                className={`font-label text-[14px] font-semibold uppercase tracking-[0.1em] transition-colors duration-300 ${
-                  link.active
-                    ? 'text-primary'
-                    : 'text-on-surface-variant hover:text-secondary-fixed-dim'
-                }`}
-              >
-                {link.label}
-              </a>
-            ))}
+            {navLinks.map((link) => {
+              const active = isActive(link)
+              return (
+                <Link
+                  key={link.label}
+                  to={link.to}
+                  className={`relative font-label text-[14px] font-semibold uppercase tracking-[0.1em] transition-colors duration-300 pb-1 ${
+                    active
+                      ? 'text-primary'
+                      : 'text-on-surface-variant hover:text-primary'
+                  }`}
+                >
+                  {link.label}
+                  {/* Animated underline */}
+                  <span
+                    className="absolute bottom-0 left-0 h-[1.5px] bg-primary transition-all duration-300 ease-in-out"
+                    style={{ width: active ? '100%' : '0%' }}
+                  />
+                </Link>
+              )
+            })}
           </nav>
 
           {/* Brand Logo (Center) */}
-          <a
-            href="#"
+          <Link
+            to="/"
             className="absolute left-1/2 transform -translate-x-1/2 flex items-center justify-center"
             aria-label="AMAZING - Trang chủ"
           >
             <Logo width={160} className="h-10 md:h-12 w-auto" />
-          </a>
+          </Link>
 
           {/* Trailing Icons */}
           <div className="flex items-center gap-4">
@@ -127,18 +141,26 @@ export default function Navbar() {
               </button>
             </div>
             <div className="flex flex-col gap-6">
-              {navLinks.map((link) => (
-                <a
-                  key={link.label}
-                  href={link.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`font-label text-[16px] font-semibold uppercase tracking-[0.1em] transition-colors ${
-                    link.active ? 'text-primary' : 'text-on-surface-variant hover:text-primary'
-                  }`}
-                >
-                  {link.label}
-                </a>
-              ))}
+              {navLinks.map((link) => {
+                const active = isActive(link)
+                return (
+                  <Link
+                    key={link.label}
+                    to={link.to}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`relative font-label text-[16px] font-semibold uppercase tracking-[0.1em] transition-colors w-fit ${
+                      active ? 'text-primary' : 'text-on-surface-variant hover:text-primary'
+                    }`}
+                  >
+                    {link.label}
+                    {/* Animated underline */}
+                    <span
+                      className="absolute bottom-0 left-0 h-[1.5px] bg-primary transition-all duration-300 ease-in-out"
+                      style={{ width: active ? '100%' : '0%' }}
+                    />
+                  </Link>
+                )
+              })}
             </div>
             <div className="mt-auto flex items-center gap-6 pt-8 border-t border-outline-variant/30">
               <button className="text-on-surface-variant hover:text-primary transition-colors cursor-pointer" aria-label="Yêu thích">
