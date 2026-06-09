@@ -4,6 +4,7 @@ import Footer from './components/Footer'
 import HomePage from './pages/customer/HomePage'
 import AdminLayout from './components/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
+import Payment from './pages/customer/Payment'
 
 function CustomerLayout() {
   return (
@@ -67,6 +68,9 @@ function App() {
           
           {/* Catch-all redirect to Home */}
           <Route path="*" element={<CustomerLayout />} />
+
+          {/* Payment Route */}  
+          <Route path="/payment" element={<Payment />} />
         </Routes>
         
         {/* Floating Switcher for Easy Testing */}
