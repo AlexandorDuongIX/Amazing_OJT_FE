@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
+import axios from 'axios'
 
 /* ============================================================
    ProductListPage — AMAZING Clothing Shop (Customer Page)
@@ -10,92 +11,28 @@ import { useParams } from 'react-router-dom'
    3. Load More Button
    ============================================================ */
 
-/* ---------- Product Data ---------- */
+/* ---------- Product Data (from API) ---------- */
 interface Product {
   id: number
   name: string
-  price: string
-  badge?: string
-  primaryImage: string
-  secondaryImage: string
+  description: string
+  price: number
+  discountPrice: number
+  category: string
+  sku: string
+  brand: string
+  color: string
+  size: string
+  material: string
+  imageUrl: string
+  rating: number
+  reviewCount: number
+  isActive: boolean
 }
 
-const PRODUCTS: Product[] = [
-  {
-    id: 1,
-    name: 'Áo Khoác Wool Oversized',
-    price: '12.500.000 VNĐ',
-    primaryImage:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuCBeZ7rP06QQFBe5La9OVex1xCQmm8EDZ6hzAwEWwnb7M-EZACkLdTQDYSeaH6N5Mq4mno-w0qmcVGHd1pXYo42M3LZzAbWgsyotaDWhcvOFAQFLa01xwHMdphkTWtE9NURZxfomFXbwGm7k5hEevlbvJAzJisP7zPsctVqbUbdDgvSBDO1TkbsPvHch_yqCiwW-DThKtomIbiiAqn3TOysnbU2dW70-gpIITjGU2P9z3YwjPU-i2ETWbhHhcR2q6LsieCwgjkTfAo',
-    secondaryImage:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuDLgxZRAJh8TLZg-czqw7oyalCXLQgQrIPWo_YKGInaGt6WazrjnYSOUIHKVvCVm_ABdrIne0rzMNmxbV-TIWKqy7PTgDhorTXSSM71ubEZshappoUf0D1PZDbVGJMpOXp9qwFdF9ekjeRl5tIg2Fl2qxW28NHaWx4NHVGHdCp40pl_swzJv2tULHjassCHWBOcxirhXHCKu94BP49nZNE1UPiw9nPHpoavN4Bv5AQP1TI_rM0nqIO040AjlckPsgryNlpkTS3YJJU',
-  },
-  {
-    id: 2,
-    name: 'Suit Nam Essential',
-    price: '18.000.000 VNĐ',
-    primaryImage:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuCGRWul4XhzRhwR4_6Try_wyRK-sMjVmSXSUkCWF6L8DH0lAuR3XzcaaB8SH61fXNyKeIcUXLdYx16JsbDeRj4kpcbrP7S8XqKmgmsDyC9_iqH5gJPO2VlKx7tQdUe627EodLylpR-2EkoLZUBXprQ_t42pWTIYfOR_MFhd3i3_oqIcm7kWMDpJtDjI-Snrj5W-PM8qdarqKQyvlcDsDe4iEW30cFgmg9LgDucwkmDQuCWdo-2eKCiXkamU0ZiL6DRrUjW63MCiv1w',
-    secondaryImage:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuBtCYceFovBQHmq6ZDgh-HXTVp8KRPCZg__8aTlquZxiXQ1s83c989kzdDRmRQy1aZy-Z8Sunc9ck4dFtCn0UrxCg3910qVDBcy76Yn-kenwRKD6KAN5tqKUt-JEZuuuji0KP40o6WCenQVY0dz-JQDgC2qlRCxGoswjodNxJ0vNycVN9WuvIvSUMTt_T9akmJjmSGXB8aqTZx2iRgeG2wyaj1zxJ8rgz1N0zK_eK1Ujci1WlpxOwUs80y5e6Msf__03-KWv_n3KiA',
-  },
-  {
-    id: 3,
-    name: 'Giày Loafers Da Cao Cấp',
-    price: '8.500.000 VNĐ',
-    badge: 'Limited Edition',
-    primaryImage:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuDpCtKHg5h7qvAXEKjUb7hbEufj5yQhgt_8VsplHbYTb3-EwLKqN0F6YhQZgYTWM3-rfPEc535lUmrrBe7vf2UohzsYfL1OcAIIMjKDFDAEZNp92PWNhgkXPSxXbLM9BEBPLtVDem64xKxNw4pFbeg2YkKtCLlqW1lbFIBXiwz_KDFx2CP-_evdkmdka5bQSjr_boaRRdAXwqQqOLGCVMyg_GfHMqVOnevBAJk8tBYVhO--i-7-gU2EjAVAeC96dX6xhmR2tq8FxcI',
-    secondaryImage:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuA5k_XQrIp1dh6a8N_C2igi6HMdNJ3B-B56lA5cBL4wTgDMBGuquydgK3di95Jo35V2hT4en1Dxavd_Ygplzh5DHFF2lz_uMvk95xMXTKaofFBmWOoQcotpRHv237xsA0uqq7YaWSuLDuYhz9s7qBIfIBsSg0MmXcp7TLcQJI1_wP42dutUjAkcBGu8rKhPbZO7kLGvtlhwW_7ch4UDPvoFo6QjCgq8uG75JsVzA87aSt-sYJp0sZSEvi__D_NWi6ruInoUgs8O4MA',
-  },
-  {
-    id: 4,
-    name: 'Đồng Hồ Gold Minimalist',
-    price: '15.200.000 VNĐ',
-    primaryImage:
-      'https://lh3.googleusercontent.com/aida/ADBb0uipFJY_Zhm-1F7u9QTNTueSZ6MGoH2A8OkKYMoEBSW0bMIQTP91VfQGy3AuV1GFTSVICBG9hl753DUB3GyWzTrJVxj7I792-dV_7UYLHTsXPUxR0o2xB-zoARpQjYl8tipAw7SwX3V6hR4L_cVCKuy7ik56gQ_sXaZbAl8om-WSMH4zoAmb9AW-UaT7bRQBKNA_2WD6lFemN-bg58-c2kqPsqU22gmAE57oaxzytUdyTpCpUPx1rrXr8A',
-    secondaryImage:
-      'https://lh3.googleusercontent.com/aida/ADBb0uipFJY_Zhm-1F7u9QTNTueSZ6MGoH2A8OkKYMoEBSW0bMIQTP91VfQGy3AuV1GFTSVICBG9hl753DUB3GyWzTrJVxj7I792-dV_7UYLHTsXPUxR0o2xB-zoARpQjYl8tipAw7SwX3V6hR4L_cVCKuy7ik56gQ_sXaZbAl8om-WSMH4zoAmb9AW-UaT7bRQBKNA_2WD6lFemN-bg58-c2kqPsqU22gmAE57oaxzytUdyTpCpUPx1rrXr8A',
-  },
-  {
-    id: 5,
-    name: 'Áo Sơ Mi Linen Trắng',
-    price: '3.200.000 VNĐ',
-    primaryImage:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuAjCue7rtdmW2RgLjgwCVCVC7GZgi63V7TiSssQO9PIt1OtH1aGyJ_pfToRJNXrxAEGvNDXXqqLxjC5oAjFx-efNCxG3RKVpuKvZKd6lTQpJxe97LqM8jnz9o31gm4j84NohC7BAHmEiwPn-fCZjbYFP3f8tBUN-KT65brEKgrFtLM296_TZU6lkpzBaJGDjCAaOG58-yznM6BJMxLuYplVU5OkvbH29_9xwYYY3DNMS9FK3Jp6cXh0dUQE84HP5vZWC3G5egyf4ME',
-    secondaryImage:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuAjFMbxUQCBM8Dgdh6nvkpBeVcWqAdgZfk8OixaHYuMX9PRvhz0HbazjPtXsojVee6gHjkgXL_Cda0a0WOA4ea0IShxCVGC72CZ11th-DXvus7KzeRHuAFRcvHWo0Gf6gpRHDPjbPRrCsQ4f2oCHfxhhIUz2oU-KZEUguRSgfrJmMkLEcdpXX5TNgsJ9q6EsPuXZksiFyrjv5fgE7gBtSKt9mD5rh4n5E5cKh-z4akj6GCzoyXYtPjfJjbMr8z941NLllBltiy6wAo',
-  },
-  {
-    id: 6,
-    name: 'Quần Tây Slim Fit',
-    price: '5.800.000 VNĐ',
-    primaryImage:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuCEEMRAYNsWYIamEt3oGaYGTnkzjvSEGgyPZYoqFO_8K7EcSQriWNR7_8MFU2MdWYnHoTc8W3H-fOAvOqRY16rtQE_38AHcvXgNIH914L3jesQGUGLntYJyH9scrJaAtWojM-X9gKvy1PTWmfmGI_cLsy8wTyTUtbKjN3bwMOtGpwmOeD4wH7XurirQDjXni_a9kDLOEC9rqSgrPsiIP0O8jy5ShdlBDRMYLqvjlizBISwwMB2bdyxdktGBfDmKGyTHmyqjpiVsH98',
-    secondaryImage:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuDe7Q7KfaQ2fbCKVztHoR3zJJggyCbXni2ICIqgjncKdsVp3i5xdC7-iMMwe0zTFf4w7cuR6ymrsTARQAkGxC-egGIJjhj8qMdygBP1FtmZVNLsMfD3CmKfggKwa5u0Cc1bxThFsqlOCfPIdEcPhsSSv9YxgPmDi4cs6VnsxOMrMrElx7WCi4yM1Dwobh0PWUDq0iisOpI1qQKB4dcHuVQe5d5c1W6JTpC6zqtfW1Be2S3Gu6r8Sfa0U6MKDcBnhSEEXkEu8ED-3fk',
-  },
-  {
-    id: 7,
-    name: 'Túi Tote Da Bò',
-    price: '7.900.000 VNĐ',
-    badge: 'New Arrival',
-    primaryImage:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuCBeZ7rP06QQFBe5La9OVex1xCQmm8EDZ6hzAwEWwnb7M-EZACkLdTQDYSeaH6N5Mq4mno-w0qmcVGHd1pXYo42M3LZzAbWgsyotaDWhcvOFAQFLa01xwHMdphkTWtE9NURZxfomFXbwGm7k5hEevlbvJAzJisP7zPsctVqbUbdDgvSBDO1TkbsPvHch_yqCiwW-DThKtomIbiiAqn3TOysnbU2dW70-gpIITjGU2P9z3YwjPU-i2ETWbhHhcR2q6LsieCwgjkTfAo',
-    secondaryImage:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuDLgxZRAJh8TLZg-czqw7oyalCXLQgQrIPWo_YKGInaGt6WazrjnYSOUIHKVvCVm_ABdrIne0rzMNmxbV-TIWKqy7PTgDhorTXSSM71ubEZshappoUf0D1PZDbVGJMpOXp9qwFdF9ekjeRl5tIg2Fl2qxW28NHaWx4NHVGHdCp40pl_swzJv2tULHjassCHWBOcxirhXHCKu94BP49nZNE1UPiw9nPHpoavN4Bv5AQP1TI_rM0nqIO040AjlckPsgryNlpkTS3YJJU',
-  },
-  {
-    id: 8,
-    name: 'Kính Mắt Vuông Classic',
-    price: '2.400.000 VNĐ',
-    primaryImage:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuCGRWul4XhzRhwR4_6Try_wyRK-sMjVmSXSUkCWF6L8DH0lAuR3XzcaaB8SH61fXNyKeIcUXLdYx16JsbDeRj4kpcbrP7S8XqKmgmsDyC9_iqH5gJPO2VlKx7tQdUe627EodLylpR-2EkoLZUBXprQ_t42pWTIYfOR_MFhd3i3_oqIcm7kWMDpJtDjI-Snrj5W-PM8qdarqKQyvlcDsDe4iEW30cFgmg9LgDucwkmDQuCWdo-2eKCiXkamU0ZiL6DRrUjW63MCiv1w',
-    secondaryImage:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuBtCYceFovBQHmq6ZDgh-HXTVp8KRPCZg__8aTlquZxiXQ1s83c989kzdDRmRQy1aZy-Z8Sunc9ck4dFtCn0UrxCg3910qVDBcy76Yn-kenwRKD6KAN5tqKUt-JEZuuuji0KP40o6WCenQVY0dz-JQDgC2qlRCxGoswjodNxJ0vNycVN9WuvIvSUMTt_T9akmJjmSGXB8aqTZx2iRgeG2wyaj1zxJ8rgz1N0zK_eK1Ujci1WlpxOwUs80y5e6Msf__03-KWv_n3KiA',
-  },
-]
+/* ---------- Helpers ---------- */
+const formatVND = (amount: number) =>
+  amount.toLocaleString('vi-VN') + ' ₫'
 
 /* ---------- Filter Select ---------- */
 interface FilterSelectProps {
@@ -138,29 +75,19 @@ interface ProductCardProps {
 
 function ProductCard({ product }: ProductCardProps) {
   const [wished, setWished] = useState(false)
+  const [imgError, setImgError] = useState(false)
+  const hasDiscount = product.discountPrice < product.price
 
   return (
     <div className="group product-card cursor-pointer">
       <div className="relative aspect-[3/4] overflow-hidden mb-4 bg-surface-container-low">
-        {/* Primary Image */}
+        {/* Product Image */}
         <img
-          src={product.primaryImage}
+          src={imgError ? 'https://via.placeholder.com/400x533?text=No+Image' : product.imageUrl}
           alt={product.name}
-          className="object-cover w-full h-full absolute inset-0 transition-opacity duration-500 ease-in-out group-hover:opacity-0"
+          onError={() => setImgError(true)}
+          className="object-cover w-full h-full absolute inset-0 transition-transform duration-500 ease-in-out group-hover:scale-105"
         />
-        {/* Secondary (hover) Image */}
-        <img
-          src={product.secondaryImage}
-          alt={`${product.name} chi tiết`}
-          className="object-cover w-full h-full absolute inset-0 opacity-0 transition-opacity duration-500 ease-in-out group-hover:opacity-100"
-        />
-
-        {/* Badge */}
-        {product.badge && (
-          <div className="absolute top-4 left-4 border border-secondary text-secondary font-label text-[10px] uppercase tracking-widest px-2 py-1 bg-surface/80 z-10">
-            {product.badge}
-          </div>
-        )}
 
         {/* Wishlist Button */}
         <button
@@ -170,7 +97,7 @@ function ProductCard({ product }: ProductCardProps) {
         >
           <span
             className={`material-symbols-outlined text-[20px] transition-colors duration-200 ${
-              wished ? 'text-error fill' : 'text-on-surface hover:text-secondary'
+              wished ? 'text-error' : 'text-on-surface hover:text-secondary'
             }`}
             style={wished ? { fontVariationSettings: "'FILL' 1" } : {}}
           >
@@ -191,7 +118,32 @@ function ProductCard({ product }: ProductCardProps) {
         <h3 className="font-headline text-[18px] md:text-[20px] font-medium text-on-surface mb-1 leading-snug">
           {product.name}
         </h3>
-        <p className="font-body text-[14px] text-on-surface-variant">{product.price}</p>
+        {hasDiscount ? (
+          <div className="flex items-center justify-center gap-2">
+            <span className="font-body text-[14px] font-semibold text-error">
+              {formatVND(product.discountPrice)}
+            </span>
+            <span className="font-body text-[13px] text-on-surface-variant line-through">
+              {formatVND(product.price)}
+            </span>
+          </div>
+        ) : (
+          <p className="font-body text-[14px] text-on-surface-variant">{formatVND(product.price)}</p>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/* ---------- Skeleton Card ---------- */
+function SkeletonCard() {
+  return (
+    <div className="animate-pulse">
+      <div className="aspect-[3/4] bg-surface-container rounded mb-4" />
+      <div className="space-y-2 px-1">
+        <div className="h-3 bg-surface-container rounded w-1/2 mx-auto" />
+        <div className="h-4 bg-surface-container rounded w-3/4 mx-auto" />
+        <div className="h-3 bg-surface-container rounded w-1/3 mx-auto" />
       </div>
     </div>
   )
@@ -209,20 +161,78 @@ export default function ProductListPage() {
   const { category } = useParams<{ category?: string }>()
   const pageTitle = category ? (CATEGORY_TITLES[category] ?? 'Bộ Sưu Tập') : 'Tất Cả Sản Phẩm'
 
+  const [products, setProducts] = useState<Product[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
   const [filterCategory, setFilterCategory] = useState('')
-  const [color, setColor] = useState('')
-  const [size, setSize] = useState('')
+  const [filterColor, setFilterColor] = useState('')
+  const [filterSize, setFilterSize] = useState('')
   const [priceRange, setPriceRange] = useState('')
   const [sortBy, setSortBy] = useState('')
   const [visibleCount, setVisibleCount] = useState(8)
+
+  /* ── Fetch from API ── */
+  useEffect(() => {
+    const apiBase = import.meta.env.VITE_API_BASE_URL
+    setLoading(true)
+    setError(null)
+    axios
+      .get<Product[]>(`${apiBase}/product`)
+      .then((res) => {
+        setProducts(res.data)
+      })
+      .catch(() => {
+        setError('Không thể tải sản phẩm. Vui lòng thử lại sau.')
+      })
+      .finally(() => {
+        setLoading(false)
+      })
+  }, [])
 
   // Reset paging whenever the route category changes
   useEffect(() => {
     setVisibleCount(8)
   }, [category])
 
-  const visibleProducts = PRODUCTS.slice(0, visibleCount)
-  const hasMore = visibleCount < PRODUCTS.length
+  /* ── Derive unique filter options from data ── */
+  const categoryOptions = useMemo(() => {
+    const cats = [...new Set(products.map((p) => p.category))]
+    return cats.map((c) => ({ value: c, label: c }))
+  }, [products])
+
+  const colorOptions = useMemo(() => {
+    const colors = [...new Set(products.map((p) => p.color))]
+    return colors.map((c) => ({ value: c, label: c }))
+  }, [products])
+
+  const sizeOptions = useMemo(() => {
+    const sizes = [...new Set(products.map((p) => p.size))]
+    return sizes.map((s) => ({ value: s, label: s }))
+  }, [products])
+
+  /* ── Filter + Sort logic ── */
+  const filteredProducts = useMemo(() => {
+    let list = products.filter((p) => p.isActive)
+
+    if (filterCategory) list = list.filter((p) => p.category === filterCategory)
+    if (filterColor) list = list.filter((p) => p.color === filterColor)
+    if (filterSize) list = list.filter((p) => p.size === filterSize)
+
+    if (priceRange === 'duoi-300k') list = list.filter((p) => (p.discountPrice || p.price) < 300000)
+    else if (priceRange === '300k-600k')
+      list = list.filter((p) => (p.discountPrice || p.price) >= 300000 && (p.discountPrice || p.price) <= 600000)
+    else if (priceRange === 'tren-600k') list = list.filter((p) => (p.discountPrice || p.price) > 600000)
+
+    if (sortBy === 'gia-tang') list = [...list].sort((a, b) => (a.discountPrice || a.price) - (b.discountPrice || b.price))
+    else if (sortBy === 'gia-giam') list = [...list].sort((a, b) => (b.discountPrice || b.price) - (a.discountPrice || a.price))
+    else if (sortBy === 'danh-gia') list = [...list].sort((a, b) => b.rating - a.rating)
+
+    return list
+  }, [products, filterCategory, filterColor, filterSize, priceRange, sortBy])
+
+  const visibleProducts = filteredProducts.slice(0, visibleCount)
+  const hasMore = visibleCount < filteredProducts.length
 
   return (
     <main className="w-full max-w-[1440px] mx-auto px-[20px] md:px-[80px] py-16 md:py-24">
@@ -238,41 +248,29 @@ export default function ProductListPage() {
             <FilterSelect
               label="Danh mục"
               value={filterCategory}
-              onChange={setFilterCategory}
-              options={[
-                { value: 'ao-khoac', label: 'Áo Khoác' },
-                { value: 'giay', label: 'Giày' },
-                { value: 'phu-kien', label: 'Phụ Kiện' },
-              ]}
+              onChange={(v) => { setFilterCategory(v); setVisibleCount(8) }}
+              options={categoryOptions}
             />
             <FilterSelect
               label="Màu sắc"
-              value={color}
-              onChange={setColor}
-              options={[
-                { value: 'den', label: 'Đen' },
-                { value: 'nau', label: 'Nâu' },
-                { value: 'beige', label: 'Beige' },
-              ]}
+              value={filterColor}
+              onChange={(v) => { setFilterColor(v); setVisibleCount(8) }}
+              options={colorOptions}
             />
             <FilterSelect
               label="Kích cỡ"
-              value={size}
-              onChange={setSize}
-              options={[
-                { value: 's', label: 'S' },
-                { value: 'm', label: 'M' },
-                { value: 'l', label: 'L' },
-              ]}
+              value={filterSize}
+              onChange={(v) => { setFilterSize(v); setVisibleCount(8) }}
+              options={sizeOptions}
             />
             <FilterSelect
               label="Khoảng giá"
               value={priceRange}
-              onChange={setPriceRange}
+              onChange={(v) => { setPriceRange(v); setVisibleCount(8) }}
               options={[
-                { value: 'duoi-5tr', label: 'Dưới 5 triệu' },
-                { value: '5-10tr', label: '5 – 10 triệu' },
-                { value: 'tren-10tr', label: 'Trên 10 triệu' },
+                { value: 'duoi-300k', label: 'Dưới 300.000 ₫' },
+                { value: '300k-600k', label: '300.000 – 600.000 ₫' },
+                { value: 'tren-600k', label: 'Trên 600.000 ₫' },
               ]}
             />
           </div>
@@ -284,7 +282,7 @@ export default function ProductListPage() {
               value={sortBy}
               onChange={setSortBy}
               options={[
-                { value: 'moi-nhat', label: 'Mới nhất' },
+                { value: 'danh-gia', label: 'Đánh giá cao nhất' },
                 { value: 'gia-tang', label: 'Giá tăng dần' },
                 { value: 'gia-giam', label: 'Giá giảm dần' },
               ]}
@@ -293,15 +291,45 @@ export default function ProductListPage() {
         </div>
       </div>
 
+      {/* ── States ── */}
+      {error && (
+        <div className="text-center py-20">
+          <span className="material-symbols-outlined text-[48px] text-error mb-4 block">error</span>
+          <p className="font-body text-error text-[16px]">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-6 border border-primary px-8 py-3 font-label text-[13px] font-semibold uppercase tracking-widest text-primary hover:bg-primary hover:text-on-primary transition-colors duration-300"
+          >
+            Thử lại
+          </button>
+        </div>
+      )}
+
       {/* ── Product Grid ── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 md:gap-x-[24px] gap-y-12 md:gap-y-16">
-        {visibleProducts.map((product) => (
-          <ProductCard key={product.id} product={product} />
-        ))}
-      </div>
+      {!error && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 md:gap-x-[24px] gap-y-12 md:gap-y-16">
+          {loading
+            ? Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)
+            : visibleProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+        </div>
+      )}
+
+      {/* ── Empty state ── */}
+      {!loading && !error && filteredProducts.length === 0 && (
+        <div className="text-center py-20">
+          <span className="material-symbols-outlined text-[48px] text-on-surface-variant mb-4 block">
+            search_off
+          </span>
+          <p className="font-body text-on-surface-variant text-[16px]">
+            Không tìm thấy sản phẩm phù hợp với bộ lọc đã chọn.
+          </p>
+        </div>
+      )}
 
       {/* ── Load More ── */}
-      {hasMore && (
+      {!loading && !error && hasMore && (
         <div className="mt-16 flex justify-center">
           <button
             onClick={() => setVisibleCount((c) => c + 4)}
@@ -312,9 +340,9 @@ export default function ProductListPage() {
         </div>
       )}
 
-      {!hasMore && (
+      {!loading && !error && filteredProducts.length > 0 && !hasMore && (
         <p className="mt-16 text-center font-label text-[13px] uppercase tracking-widest text-on-surface-variant">
-          Đã hiển thị tất cả sản phẩm
+          Đã hiển thị tất cả {filteredProducts.length} sản phẩm
         </p>
       )}
     </main>
