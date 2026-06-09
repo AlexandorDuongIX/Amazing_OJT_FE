@@ -8,6 +8,7 @@ import CartPage from './pages/customer/CartPage'
 import CheckoutPage from './pages/customer/CheckoutPage'
 import PaymentPage from './pages/customer/PaymentPage'
 import OrderSuccessPage from './pages/customer/OrderSucessPage'
+import { LoginPage, RegisterPage } from './pages/customer/AuthPages'
 
 import AdminLayout from './components/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
@@ -29,6 +30,9 @@ function CustomerLayout({ children }: { children?: React.ReactNode }) {
 function RoleSwitcher() {
   const location = useLocation()
   const isAdmin = location.pathname.startsWith('/admin')
+  const isAuth = location.pathname === '/login' || location.pathname === '/register'
+
+  if (isAuth) return null
 
   return (
     <div className="fixed bottom-6 right-6 z-[9999] bg-background/90 border border-outline-variant/30 rounded-full shadow-2xl p-1.5 flex items-center gap-1 backdrop-blur-md">
@@ -106,6 +110,24 @@ function App() {
             element={
               <CustomerLayout>
                 <OrderSuccessPage />
+              </CustomerLayout>
+            }
+          />
+
+          <Route
+            path="/login"
+            element={
+              <CustomerLayout>
+                <LoginPage />
+              </CustomerLayout>
+            }
+          />
+
+          <Route
+            path="/register"
+            element={
+              <CustomerLayout>
+                <RegisterPage />
               </CustomerLayout>
             }
           />

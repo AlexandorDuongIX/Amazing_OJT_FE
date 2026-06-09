@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react'
+import Icon from './Icon'
 
 /* ============================================================
    Modal Component — AMAZING Design System
@@ -77,7 +78,7 @@ export default function Modal({
               className="text-on-surface-variant hover:text-primary transition-colors cursor-pointer p-1"
               aria-label="Đóng"
             >
-              <span className="material-symbols-outlined text-[24px]">close</span>
+              <Icon name="close" size={24} />
             </button>
           </div>
         )}
@@ -89,7 +90,7 @@ export default function Modal({
             className="absolute top-4 right-4 text-on-surface-variant hover:text-primary transition-colors cursor-pointer p-1 z-10"
             aria-label="Đóng"
           >
-            <span className="material-symbols-outlined text-[24px]">close</span>
+            <Icon name="close" size={24} />
           </button>
         )}
 

@@ -1,4 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
+import Icon, { type IconName } from './Icon'
 
 /* ============================================================
    AdminLayout — AMAZING Luxury Admin Shell
@@ -12,14 +13,14 @@ import { Link, useLocation } from 'react-router-dom'
 interface SidebarLink {
   label: string
   href: string
-  icon: string
+  icon: IconName
 }
 
 const sidebarLinks: SidebarLink[] = [
   { label: 'Dashboard', href: '/admin', icon: 'dashboard' },
-  { label: 'Inventory', href: '/admin/inventory', icon: 'inventory_2' },
-  { label: 'Customers', href: '/admin/customers', icon: 'group' },
-  { label: 'Orders', href: '/admin/orders', icon: 'shopping_bag' },
+  { label: 'Inventory', href: '/admin/inventory', icon: 'inventory' },
+  { label: 'Customers', href: '/admin/customers', icon: 'users' },
+  { label: 'Orders', href: '/admin/orders', icon: 'shopping-bag' },
   { label: 'Marketing', href: '/admin/marketing', icon: 'campaign' },
   { label: 'Reports', href: '/admin/reports', icon: 'analytics' },
   { label: 'Staff', href: '/admin/staff', icon: 'badge' },
@@ -55,7 +56,7 @@ export default function AdminLayout({ children }: { children?: React.ReactNode }
                     : 'text-on-tertiary-container opacity-70 hover:opacity-100 hover:text-secondary hover:bg-on-tertiary-fixed/10'
                   }`}
               >
-                <span className="material-symbols-outlined">{link.icon}</span>
+                <Icon name={link.icon} size={24} />
                 <span className="font-label uppercase tracking-widest text-label-md">
                   {link.label}
                 </span>
