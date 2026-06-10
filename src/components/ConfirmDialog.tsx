@@ -14,10 +14,8 @@ export default function ConfirmDialog({ isOpen, onConfirm, onCancel, productName
       if (e.key === 'Escape') onCancel()
     }
     document.addEventListener('keydown', handleKeyDown)
-    document.body.style.overflow = 'hidden'
     return () => {
       document.removeEventListener('keydown', handleKeyDown)
-      document.body.style.overflow = ''
     }
   }, [isOpen, onCancel])
 
@@ -26,12 +24,12 @@ export default function ConfirmDialog({ isOpen, onConfirm, onCancel, productName
   return (
     <div
       className="fixed inset-0 z-[200] flex items-center justify-center p-4"
-      style={{ backgroundColor: 'rgba(0,0,0,0.75)' }}
+      style={{ backgroundColor: 'rgba(0,0,0,0.75)', animation: 'fadeIn 0.2s ease-out' }}
       onClick={onCancel}
     >
       <div
         className="relative bg-surface-container-lowest w-full max-w-[420px] px-10 pt-8 pb-7"
-        style={{ borderRadius: '4px' }}
+        style={{ borderRadius: '4px', animation: 'scaleIn 0.25s ease-out' }}
         role="dialog"
         aria-modal="true"
         aria-label="Xác nhận xoá sản phẩm"
