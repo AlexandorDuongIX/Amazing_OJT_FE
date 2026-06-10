@@ -7,6 +7,7 @@ import ProductListPage from './pages/customer/ProductListPage'
 import AdminLayout from './components/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import Payment from './pages/customer/Payment'
+import AdminInventory from './pages/admin/AdminInventory'
 
 function CustomerLayout() {
   return (
@@ -79,6 +80,15 @@ function App() {
             element={
               <AdminLayout>
                 <AdminDashboard />
+              </AdminLayout>
+            }
+          />
+
+          <Route
+            path="/admin/inventory"
+            element={
+              <AdminLayout>
+                <AdminInventory />
               </AdminLayout>
             }
           />
