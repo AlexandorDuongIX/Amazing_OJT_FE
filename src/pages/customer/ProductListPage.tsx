@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import axios from 'axios'
+import { useCartStore } from '../../store/cartStore'
 
 /* ============================================================
    ProductListPage — AMAZING Clothing Shop (Customer Page)
@@ -71,9 +72,10 @@ function FilterSelect({ label, options, value, onChange }: FilterSelectProps) {
 /* ---------- Product Card ---------- */
 interface ProductCardProps {
   product: Product
+  onAddToCart: () => void
 }
 
-function ProductCard({ product }: ProductCardProps) {
+function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const [wished, setWished] = useState(false)
   const [imgError, setImgError] = useState(false)
   const hasDiscount = product.discountPrice < product.price
@@ -96,9 +98,8 @@ function ProductCard({ product }: ProductCardProps) {
           aria-label="Thêm vào yêu thích"
         >
           <span
-            className={`material-symbols-outlined text-[20px] transition-colors duration-200 ${
-              wished ? 'text-error' : 'text-on-surface hover:text-secondary'
-            }`}
+            className={`material-symbols-outlined text-[20px] transition-colors duration-200 ${wished ? 'text-error' : 'text-on-surface hover:text-secondary'
+              }`}
             style={wished ? { fontVariationSettings: "'FILL' 1" } : {}}
           >
             favorite
@@ -107,7 +108,10 @@ function ProductCard({ product }: ProductCardProps) {
 
         {/* Add to Cart — Slides up on hover */}
         <div className="absolute bottom-0 left-0 w-full p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out">
-          <button className="w-full py-3 bg-primary text-on-primary font-label text-[14px] font-semibold uppercase tracking-wider hover:bg-secondary transition-colors duration-200">
+          <button
+            onClick={(e) => { e.stopPropagation(); onAddToCart() }}
+            className="w-full py-3 bg-primary text-on-primary font-label text-[14px] font-semibold uppercase tracking-wider hover:bg-secondary transition-colors duration-200"
+          >
             Thêm Vào Giỏ
           </button>
         </div>
@@ -160,6 +164,7 @@ const CATEGORY_TITLES: Record<string, string> = {
 export default function ProductListPage() {
   const { category } = useParams<{ category?: string }>()
   const pageTitle = category ? (CATEGORY_TITLES[category] ?? 'Bộ Sưu Tập') : 'Tất Cả Sản Phẩm'
+  const { addItem, openCart } = useCartStore()
 
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
@@ -311,8 +316,23 @@ export default function ProductListPage() {
           {loading
             ? Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)
             : visibleProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
+              <ProductCard
+                key={product.id}
+                product={product}
+                onAddToCart={() => {
+                  addItem({
+                    id: product.id,
+                    name: product.name,
+                    price: product.discountPrice || product.price,
+                    imageUrl: product.imageUrl,
+                    size: product.size,
+                    color: product.color,
+                    quantity: 1,
+                  })
+                  openCart()
+                }}
+              />
+            ))}
         </div>
       )}
 
