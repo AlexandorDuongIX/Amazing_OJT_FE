@@ -1,7 +1,7 @@
 import { type FormEvent, type ReactNode, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Icon, { type IconName } from '../../components/Icon'
-import { useAuthStore } from '../stores/authStore'
+import { useAuthStore } from '../store/authStore'
 
 const AUTH_IMAGES = {
     login: '/images/auth/login-editorial.png',

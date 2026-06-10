@@ -175,6 +175,7 @@ export default function ProductListPage() {
   /* ── Fetch from API ── */
   useEffect(() => {
     const apiBase = import.meta.env.VITE_API_BASE_URL
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true)
     setError(null)
     axios
@@ -192,6 +193,7 @@ export default function ProductListPage() {
 
   // Reset paging whenever the route category changes
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setVisibleCount(8)
   }, [category])
 
