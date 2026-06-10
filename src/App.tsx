@@ -6,6 +6,7 @@ import HomePage from './pages/customer/HomePage'
 import ProductListPage from './pages/customer/ProductListPage'
 import AdminLayout from './components/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
+import { LoginPage, RegisterPage } from './pages/customer/AuthPages'
 
 function CustomerLayout() {
   return (
@@ -16,6 +17,8 @@ function CustomerLayout() {
           <Route path="/" element={<HomePage />} />
           <Route path="/collections" element={<ProductListPage />} />
           <Route path="/collections/:category" element={<ProductListPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
           <Route path="*" element={<HomePage />} />
         </Routes>
       </main>
