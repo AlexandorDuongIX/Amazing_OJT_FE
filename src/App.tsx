@@ -4,6 +4,7 @@ import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import HomePage from './pages/customer/HomePage'
 
+import ProductListPage from './pages/customer/ProductListPage'
 import CartPage from './pages/customer/CartPage'
 import CheckoutPage from './pages/customer/CheckoutPage'
 import PaymentPage from './pages/customer/PaymentPage'
@@ -70,6 +71,15 @@ function App() {
             element={
               <CustomerLayout>
                 <HomePage />
+              </CustomerLayout>
+            }
+          />
+
+          <Route
+            path="/collections/:category"
+            element={
+              <CustomerLayout>
+                <ProductListPage />
               </CustomerLayout>
             }
           />

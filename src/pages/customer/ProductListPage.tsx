@@ -164,7 +164,7 @@ const CATEGORY_TITLES: Record<string, string> = {
 export default function ProductListPage() {
   const { category } = useParams<{ category?: string }>()
   const pageTitle = category ? (CATEGORY_TITLES[category] ?? 'Bộ Sưu Tập') : 'Tất Cả Sản Phẩm'
-  const { addItem, openCart } = useCartStore()
+  const { addItem, showToast } = useCartStore()
 
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
@@ -329,7 +329,7 @@ export default function ProductListPage() {
                     color: product.color,
                     quantity: 1,
                   })
-                  openCart()
+                  showToast(product.name, product.imageUrl, product.discountPrice || product.price)
                 }}
               />
             ))}

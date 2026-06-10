@@ -1,10 +1,12 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { CartItem } from '../types/cart'
+import type { CartToastState } from '../types/toast'
 
 interface CartState {
   items: CartItem[]
   isOpen: boolean
+  toast: CartToastState
   addItem: (item: CartItem) => void
   removeItem: (id: number, size: string, color: string) => void
   updateQuantity: (id: number, size: string, color: string, qty: number) => void
@@ -12,6 +14,8 @@ interface CartState {
   openCart: () => void
   closeCart: () => void
   toggleCart: () => void
+  showToast: (productName: string, productImage: string, productPrice: number) => void
+  hideToast: () => void
 }
 
 export const useCartStore = create<CartState>()(
@@ -19,6 +23,7 @@ export const useCartStore = create<CartState>()(
     (set) => ({
       items: [],
       isOpen: false,
+      toast: { visible: false, productName: '', productImage: '', productPrice: 0 },
 
       addItem: (item) =>
         set((state) => {
@@ -66,6 +71,10 @@ export const useCartStore = create<CartState>()(
       openCart: () => set({ isOpen: true }),
       closeCart: () => set({ isOpen: false }),
       toggleCart: () => set((state) => ({ isOpen: !state.isOpen })),
+      showToast: (productName, productImage, productPrice) =>
+        set({ toast: { visible: true, productName, productImage, productPrice } }),
+      hideToast: () =>
+        set({ toast: { visible: false, productName: '', productImage: '', productPrice: 0 } }),
     }),
     {
       name: 'amazing-cart',

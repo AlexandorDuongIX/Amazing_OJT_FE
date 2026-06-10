@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import Logo from './Logo'
 import MiniCart from './MiniCart'
+import CartToast from './CartToast'
 import { useCartStore } from '../store/cartStore'
 
 /* ============================================================
@@ -120,6 +121,7 @@ export default function Navbar() {
       </header>
 
       <MiniCart />
+      <CartToast />
 
       {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (

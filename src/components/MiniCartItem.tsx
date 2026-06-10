@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import type { CartItem } from '../types/cart'
+import ConfirmDialog from './ConfirmDialog'
 
 const formatVND = (amount: number) => amount.toLocaleString('vi-VN') + ' ₫'
 
@@ -9,6 +11,8 @@ interface Props {
 }
 
 export default function MiniCartItem({ item, onRemove, onUpdateQty }: Props) {
+  const [showConfirm, setShowConfirm] = useState(false)
+
   return (
     <div className="flex gap-4 items-start relative">
       {/* Product image */}
@@ -34,7 +38,7 @@ export default function MiniCartItem({ item, onRemove, onUpdateQty }: Props) {
           <div className="flex items-center h-[28px] w-[80px] border border-outline-variant">
             <button
               className="flex-1 h-full flex items-center justify-center hover:bg-surface-container-low transition-colors cursor-pointer"
-              onClick={() => onUpdateQty(item.quantity - 1)}
+              onClick={() => item.quantity === 1 ? setShowConfirm(true) : onUpdateQty(item.quantity - 1)}
               aria-label="Giảm số lượng"
             >
               <span className="text-on-surface text-[16px] leading-none select-none">−</span>
@@ -63,11 +67,18 @@ export default function MiniCartItem({ item, onRemove, onUpdateQty }: Props) {
       {/* Delete button */}
       <button
         className="absolute right-0 top-0 p-1 text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer"
-        onClick={onRemove}
+        onClick={() => setShowConfirm(true)}
         aria-label="Xóa sản phẩm"
       >
         <span className="material-symbols-outlined text-[16px]">delete</span>
       </button>
+
+      <ConfirmDialog
+        isOpen={showConfirm}
+        productName={item.name}
+        onConfirm={() => { setShowConfirm(false); onRemove() }}
+        onCancel={() => setShowConfirm(false)}
+      />
     </div>
   )
 }
