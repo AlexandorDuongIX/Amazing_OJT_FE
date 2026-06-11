@@ -5,11 +5,13 @@ import Footer from './components/Footer'
 import HomePage from './pages/customer/HomePage'
 
 import ProductListPage from './pages/customer/ProductListPage'
+import ProductDetailPage from './pages/customer/ProductDetailPage'
 import CartPage from './pages/customer/cart/CartPage'
 import CheckoutPage from './pages/customer/CheckoutPage'
 import PaymentPage from './pages/customer/PaymentPage'
 import OrderSuccessPage from './pages/customer/OrderSucessPage'
 import OrderHistoryPage from './pages/customer/order-history'
+import { LoginPage, RegisterPage } from './pages/customer/AuthPages'
 
 import AdminLayout from './components/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
@@ -36,22 +38,20 @@ function RoleSwitcher() {
     <div className="fixed bottom-6 right-6 z-[9999] bg-background/90 border border-outline-variant/30 rounded-full shadow-2xl p-1.5 flex items-center gap-1 backdrop-blur-md">
       <Link
         to="/"
-        className={`px-4 py-2 rounded-full font-label text-[12px] font-bold uppercase tracking-wider transition-all duration-300 ${
-          !isAdmin
-            ? 'bg-primary text-on-primary shadow-md'
-            : 'text-on-surface-variant hover:text-primary'
-        }`}
+        className={`px-4 py-2 rounded-full font-label text-[12px] font-bold uppercase tracking-wider transition-all duration-300 ${!isAdmin
+          ? 'bg-primary text-on-primary shadow-md'
+          : 'text-on-surface-variant hover:text-primary'
+          }`}
       >
         Khách hàng
       </Link>
 
       <Link
         to="/admin"
-        className={`px-4 py-2 rounded-full font-label text-[12px] font-bold uppercase tracking-wider transition-all duration-300 ${
-          isAdmin
-            ? 'bg-primary text-on-primary shadow-md'
-            : 'text-on-surface-variant hover:text-primary'
-        }`}
+        className={`px-4 py-2 rounded-full font-label text-[12px] font-bold uppercase tracking-wider transition-all duration-300 ${isAdmin
+          ? 'bg-primary text-on-primary shadow-md'
+          : 'text-on-surface-variant hover:text-primary'
+          }`}
       >
         Admin
       </Link>
@@ -77,10 +77,46 @@ function App() {
           />
 
           <Route
+            path="/collections"
+            element={
+              <CustomerLayout>
+                <ProductListPage />
+              </CustomerLayout>
+            }
+          />
+
+          <Route
             path="/collections/:category"
             element={
               <CustomerLayout>
                 <ProductListPage />
+              </CustomerLayout>
+            }
+          />
+
+          <Route
+            path="/product/:productId"
+            element={
+              <CustomerLayout>
+                <ProductDetailPage />
+              </CustomerLayout>
+            }
+          />
+
+          <Route
+            path="/login"
+            element={
+              <CustomerLayout>
+                <LoginPage />
+              </CustomerLayout>
+            }
+          />
+
+          <Route
+            path="/register"
+            element={
+              <CustomerLayout>
+                <RegisterPage />
               </CustomerLayout>
             }
           />
@@ -171,6 +207,7 @@ function App() {
           />
         </Routes>
 
+        {/* Floating Switcher for Easy Testing */}
         <RoleSwitcher />
       </div>
     </BrowserRouter>

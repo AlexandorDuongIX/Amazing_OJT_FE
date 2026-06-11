@@ -29,11 +29,10 @@ export default function CartSummary({ total, selectedCount }: CartSummaryProps) 
         <Link
           to="/checkout"
           aria-disabled={selectedCount === 0}
-          className={`w-full h-[52px] flex items-center justify-center font-label text-[12px] uppercase tracking-[0.15em] transition-all ${
-            selectedCount > 0
+          className={`w-full h-[52px] flex items-center justify-center font-label text-[12px] uppercase tracking-[0.15em] transition-all ${selectedCount > 0
               ? 'bg-[#D4AF37] text-on-surface hover:brightness-95 cursor-pointer'
               : 'bg-surface-container text-on-surface-variant pointer-events-none'
-          }`}
+            }`}
         >
           THANH TOÁN
         </Link>

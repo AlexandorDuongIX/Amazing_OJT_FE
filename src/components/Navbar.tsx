@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import Logo from './Logo'
 import MiniCart from './MiniCart'
 import CartToast from './CartToast'
 import { useCartStore } from '../store/cartStore'
+import { useAuthStore } from '../pages/store/authStore'
 
 /* ============================================================
    Navbar Component — AMAZING Design System
@@ -23,6 +24,7 @@ interface NavLink {
 }
 
 const navLinks: NavLink[] = [
+  { label: 'Bộ sưu tập', to: '/collections', matchPrefix: '/collections' },
   { label: 'Nam', to: '/collections/nam', matchPrefix: '/collections/nam' },
   { label: 'Nữ', to: '/collections/nu', matchPrefix: '/collections/nu' },
   { label: 'Phụ kiện', to: '/collections/phu-kien', matchPrefix: '/collections/phu-kien' },
@@ -32,25 +34,15 @@ const navLinks: NavLink[] = [
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [accountOpen, setAccountOpen] = useState(false)
-  const accountRef = useRef<HTMLDivElement>(null)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
   const { items, toggleCart } = useCartStore()
   const totalItems = items.reduce((sum, i) => sum + i.quantity, 0)
   const location = useLocation()
 
+  const { user, logout } = useAuthStore()
+
   const isActive = (link: NavLink) =>
     !!link.matchPrefix && location.pathname.startsWith(link.matchPrefix)
-
-  useEffect(() => {
-    if (!accountOpen) return
-    function handleClickOutside(e: MouseEvent) {
-      if (accountRef.current && !accountRef.current.contains(e.target as Node)) {
-        setAccountOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [accountOpen])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -59,6 +51,13 @@ export default function Navbar() {
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+  useEffect(() => {
+    if (!userMenuOpen) return
+    const handleClose = () => setUserMenuOpen(false)
+    window.addEventListener('click', handleClose)
+    return () => window.removeEventListener('click', handleClose)
+  }, [userMenuOpen])
 
   return (
     <>
@@ -120,24 +119,68 @@ export default function Navbar() {
             <button className="text-primary hover:text-secondary-fixed-dim scale-95 active:scale-100 transition-transform cursor-pointer hidden md:block" aria-label="Yêu thích">
               <span className="material-symbols-outlined text-[24px]">favorite</span>
             </button>
-            <div className="relative hidden md:block" ref={accountRef}>
+            <div className="relative hidden md:block">
               <button
-                onClick={() => setAccountOpen(prev => !prev)}
-                className="text-primary hover:text-secondary-fixed-dim scale-95 active:scale-100 transition-transform cursor-pointer"
+                className="text-primary hover:text-secondary-fixed-dim scale-95 active:scale-100 transition-transform cursor-pointer block"
                 aria-label="Tài khoản"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setUserMenuOpen(!userMenuOpen)
+                }}
               >
                 <span className="material-symbols-outlined text-[24px]">person</span>
               </button>
-              {accountOpen && (
-                <div className="absolute top-full right-0 mt-2 bg-white border border-divider rounded-lg shadow-md py-2 min-w-[180px] z-50">
-                  <Link
-                    to="/orders"
-                    onClick={() => setAccountOpen(false)}
-                    className="flex items-center gap-2 px-4 py-2 font-label text-[14px] text-on-background hover:bg-surface-container transition-colors"
-                  >
-                    <span className="material-symbols-outlined text-[18px]">history</span>
-                    Lịch sử đơn hàng
-                  </Link>
+              {userMenuOpen && (
+                <div
+                  className="absolute right-0 mt-2 w-56 bg-white border border-[#e2e2e2] rounded-[15px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] py-3 z-50"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {user ? (
+                    <>
+                      <div className="px-5 py-2 border-b border-[#f0f0f0] mb-2">
+                        <p className="font-label text-[11px] font-bold text-on-surface-variant/60 uppercase tracking-wider">Tài khoản</p>
+                        <p className="font-body text-[14px] font-semibold text-primary truncate mt-0.5">{user.name}</p>
+                        <p className="font-body text-[12px] text-on-surface-variant/80 truncate">{user.email}</p>
+                      </div>
+                      <Link
+                        to="/orders"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-3 px-5 py-2.5 font-body text-[14px] text-primary hover:bg-[#f5f5f5] transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">history</span>
+                        <span>Lịch sử đơn hàng</span>
+                      </Link>
+                      <button
+                        onClick={() => {
+                          logout()
+                          setUserMenuOpen(false)
+                        }}
+                        className="w-full flex items-center gap-3 text-left px-5 py-2.5 font-body text-[14px] text-error hover:bg-error/5 transition-colors cursor-pointer"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">logout</span>
+                        <span>Đăng xuất</span>
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <Link
+                        to="/login"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-3 px-5 py-2.5 font-body text-[14px] text-primary hover:bg-[#f5f5f5] transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">login</span>
+                        <span>Đăng nhập</span>
+                      </Link>
+                      <Link
+                        to="/register"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-3 px-5 py-2.5 font-body text-[14px] text-primary hover:bg-[#f5f5f5] transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">person_add</span>
+                        <span>Đăng ký</span>
+                      </Link>
+                    </>
+                  )}
                 </div>
               )}
             </div>
@@ -201,14 +244,29 @@ export default function Navbar() {
               <button className="text-on-surface-variant hover:text-primary transition-colors cursor-pointer" aria-label="Yêu thích">
                 <span className="material-symbols-outlined">favorite</span>
               </button>
-              <Link
-                to="/orders"
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-on-surface-variant hover:text-primary transition-colors"
-                aria-label="Lịch sử đơn hàng"
-              >
-                <span className="material-symbols-outlined">history</span>
-              </Link>
+              {user ? (
+                <button
+                  onClick={() => {
+                    logout()
+                    setMobileMenuOpen(false)
+                  }}
+                  className="text-on-surface-variant hover:text-primary transition-colors cursor-pointer flex items-center gap-2"
+                  aria-label="Đăng xuất"
+                >
+                  <span className="material-symbols-outlined">logout</span>
+                  <span className="font-label text-[14px] font-semibold">Đăng xuất ({user.name})</span>
+                </button>
+              ) : (
+                <Link
+                  to="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-on-surface-variant hover:text-primary transition-colors cursor-pointer flex items-center gap-2"
+                  aria-label="Tài khoản"
+                >
+                  <span className="material-symbols-outlined">person</span>
+                  <span className="font-label text-[14px] font-semibold">Đăng nhập</span>
+                </Link>
+              )}
             </div>
           </nav>
         </div>
