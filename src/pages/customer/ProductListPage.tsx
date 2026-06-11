@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import axios from 'axios'
 
 /* ============================================================
@@ -74,12 +74,24 @@ interface ProductCardProps {
 }
 
 function ProductCard({ product }: ProductCardProps) {
+  const navigate = useNavigate()
   const [wished, setWished] = useState(false)
   const [imgError, setImgError] = useState(false)
   const hasDiscount = product.discountPrice < product.price
 
   return (
-    <div className="group product-card cursor-pointer">
+    <div
+      className="group product-card cursor-pointer"
+      onClick={() => navigate(`/product/${product.id}`)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          navigate(`/product/${product.id}`)
+        }
+      }}
+    >
       <div className="relative aspect-[3/4] overflow-hidden mb-4 bg-surface-container-low">
         {/* Product Image */}
         <img
@@ -92,7 +104,10 @@ function ProductCard({ product }: ProductCardProps) {
         {/* Wishlist Button */}
         <button
           className="absolute top-4 right-4 z-10 p-2 bg-surface/50 backdrop-blur-sm rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-surface/80"
-          onClick={() => setWished((w) => !w)}
+          onClick={(event) => {
+            event.stopPropagation()
+            setWished((w) => !w)
+          }}
           aria-label="Thêm vào yêu thích"
         >
           <span
