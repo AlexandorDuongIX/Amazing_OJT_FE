@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import Logo from './Logo'
 import MiniCart from './MiniCart'
@@ -32,12 +32,25 @@ const navLinks: NavLink[] = [
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [accountOpen, setAccountOpen] = useState(false)
+  const accountRef = useRef<HTMLDivElement>(null)
   const { items, toggleCart } = useCartStore()
   const totalItems = items.reduce((sum, i) => sum + i.quantity, 0)
   const location = useLocation()
 
   const isActive = (link: NavLink) =>
     !!link.matchPrefix && location.pathname.startsWith(link.matchPrefix)
+
+  useEffect(() => {
+    if (!accountOpen) return
+    function handleClickOutside(e: MouseEvent) {
+      if (accountRef.current && !accountRef.current.contains(e.target as Node)) {
+        setAccountOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [accountOpen])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -107,9 +120,27 @@ export default function Navbar() {
             <button className="text-primary hover:text-secondary-fixed-dim scale-95 active:scale-100 transition-transform cursor-pointer hidden md:block" aria-label="Yêu thích">
               <span className="material-symbols-outlined text-[24px]">favorite</span>
             </button>
-            <button className="text-primary hover:text-secondary-fixed-dim scale-95 active:scale-100 transition-transform cursor-pointer hidden md:block" aria-label="Tài khoản">
-              <span className="material-symbols-outlined text-[24px]">person</span>
-            </button>
+            <div className="relative hidden md:block" ref={accountRef}>
+              <button
+                onClick={() => setAccountOpen(prev => !prev)}
+                className="text-primary hover:text-secondary-fixed-dim scale-95 active:scale-100 transition-transform cursor-pointer"
+                aria-label="Tài khoản"
+              >
+                <span className="material-symbols-outlined text-[24px]">person</span>
+              </button>
+              {accountOpen && (
+                <div className="absolute top-full right-0 mt-2 bg-white border border-divider rounded-lg shadow-md py-2 min-w-[180px] z-50">
+                  <Link
+                    to="/orders"
+                    onClick={() => setAccountOpen(false)}
+                    className="flex items-center gap-2 px-4 py-2 font-label text-[14px] text-on-background hover:bg-surface-container transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">history</span>
+                    Lịch sử đơn hàng
+                  </Link>
+                </div>
+              )}
+            </div>
             <button onClick={toggleCart} className="text-primary hover:text-secondary-fixed-dim scale-95 active:scale-100 transition-transform cursor-pointer relative" aria-label="Giỏ hàng">
               <span className="material-symbols-outlined text-[24px]">shopping_bag</span>
               <span className="absolute -top-1 -right-1 bg-tertiary text-on-tertiary text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
@@ -170,9 +201,14 @@ export default function Navbar() {
               <button className="text-on-surface-variant hover:text-primary transition-colors cursor-pointer" aria-label="Yêu thích">
                 <span className="material-symbols-outlined">favorite</span>
               </button>
-              <button className="text-on-surface-variant hover:text-primary transition-colors cursor-pointer" aria-label="Tài khoản">
-                <span className="material-symbols-outlined">person</span>
-              </button>
+              <Link
+                to="/orders"
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-on-surface-variant hover:text-primary transition-colors"
+                aria-label="Lịch sử đơn hàng"
+              >
+                <span className="material-symbols-outlined">history</span>
+              </Link>
             </div>
           </nav>
         </div>

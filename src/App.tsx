@@ -5,10 +5,11 @@ import Footer from './components/Footer'
 import HomePage from './pages/customer/HomePage'
 
 import ProductListPage from './pages/customer/ProductListPage'
-import CartPage from './pages/customer/CartPage'
+import CartPage from './pages/customer/cart/CartPage'
 import CheckoutPage from './pages/customer/CheckoutPage'
 import PaymentPage from './pages/customer/PaymentPage'
 import OrderSuccessPage from './pages/customer/OrderSucessPage'
+import OrderHistoryPage from './pages/customer/order-history'
 
 import AdminLayout from './components/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
@@ -116,6 +117,15 @@ function App() {
             element={
               <CustomerLayout>
                 <OrderSuccessPage />
+              </CustomerLayout>
+            }
+          />
+
+          <Route
+            path="/orders"
+            element={
+              <CustomerLayout>
+                <OrderHistoryPage />
               </CustomerLayout>
             }
           />

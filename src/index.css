@@ -99,6 +99,15 @@
   --font-label: 'Montserrat', 'Segoe UI', Roboto, Helvetica, sans-serif;
   --font-caption: 'Montserrat', 'Segoe UI', Roboto, Helvetica, sans-serif;
 
+  /* ---- Order History Palette ---- */
+  --color-gold: #D4AF37;
+  --color-gold-subtle: rgba(212, 175, 55, 0.1);
+  --color-error-subtle: rgba(186, 26, 26, 0.1);
+  --color-info: #0d47a1;
+  --color-info-subtle: rgba(33, 150, 243, 0.1);
+  --color-muted: #757575;
+  --color-divider: #e0e0e0;
+
   /* ---- Font Sizes ---- */
   --font-size-display-lg: 64px;
   --font-size-display-lg-mobile: 40px;
