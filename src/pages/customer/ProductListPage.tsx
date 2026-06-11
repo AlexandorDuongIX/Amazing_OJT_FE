@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import axios from 'axios'
 import { useCartStore } from '../../store/cartStore'
 
@@ -76,12 +76,24 @@ interface ProductCardProps {
 }
 
 function ProductCard({ product, onAddToCart }: ProductCardProps) {
+  const navigate = useNavigate()
   const [wished, setWished] = useState(false)
   const [imgError, setImgError] = useState(false)
   const hasDiscount = product.discountPrice < product.price
 
   return (
-    <div className="group product-card cursor-pointer">
+    <div
+      className="group product-card cursor-pointer"
+      onClick={() => navigate(`/product/${product.id}`)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          navigate(`/product/${product.id}`)
+        }
+      }}
+    >
       <div className="relative aspect-[3/4] overflow-hidden mb-4 bg-surface-container-low">
         {/* Product Image */}
         <img
@@ -94,7 +106,10 @@ function ProductCard({ product, onAddToCart }: ProductCardProps) {
         {/* Wishlist Button */}
         <button
           className="absolute top-4 right-4 z-10 p-2 bg-surface/50 backdrop-blur-sm rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-surface/80"
-          onClick={() => setWished((w) => !w)}
+          onClick={(event) => {
+            event.stopPropagation()
+            setWished((w) => !w)
+          }}
           aria-label="Thêm vào yêu thích"
         >
           <span
@@ -180,6 +195,7 @@ export default function ProductListPage() {
   /* ── Fetch from API ── */
   useEffect(() => {
     const apiBase = import.meta.env.VITE_API_BASE_URL
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true)
     setError(null)
     axios
@@ -197,6 +213,7 @@ export default function ProductListPage() {
 
   // Reset paging whenever the route category changes
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setVisibleCount(8)
   }, [category])
 

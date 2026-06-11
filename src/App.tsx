@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom'
 
 import Navbar from './components/Navbar'
@@ -5,15 +6,27 @@ import Footer from './components/Footer'
 import HomePage from './pages/customer/HomePage'
 
 import ProductListPage from './pages/customer/ProductListPage'
+import ProductDetailPage from './pages/customer/ProductDetailPage'
 import CartPage from './pages/customer/CartPage'
 import CheckoutPage from './pages/customer/CheckoutPage'
 import PaymentPage from './pages/customer/PaymentPage'
 import OrderSuccessPage from './pages/customer/OrderSucessPage'
+import { LoginPage, RegisterPage } from './pages/customer/AuthPages'
+import Payment from './pages/customer/Payment'
 
 import AdminLayout from './components/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminOrders from './pages/admin/AdminOrders'
 import AdminPayments from './pages/admin/AdminPayments'
+
+/* ── Scroll to top on every route change ── */
+function ScrollToTop() {
+  const { pathname } = useLocation()
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [pathname])
+  return null
+}
 
 function CustomerLayout({ children }: { children?: React.ReactNode }) {
   return (
@@ -61,6 +74,7 @@ function RoleSwitcher() {
 function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <div className="bg-background text-on-background font-body antialiased selection:bg-secondary-container selection:text-on-secondary-container min-h-screen">
         <Routes>
 
@@ -76,10 +90,46 @@ function App() {
           />
 
           <Route
+            path="/collections"
+            element={
+              <CustomerLayout>
+                <ProductListPage />
+              </CustomerLayout>
+            }
+          />
+
+          <Route
             path="/collections/:category"
             element={
               <CustomerLayout>
                 <ProductListPage />
+              </CustomerLayout>
+            }
+          />
+
+          <Route
+            path="/product/:productId"
+            element={
+              <CustomerLayout>
+                <ProductDetailPage />
+              </CustomerLayout>
+            }
+          />
+
+          <Route
+            path="/login"
+            element={
+              <CustomerLayout>
+                <LoginPage />
+              </CustomerLayout>
+            }
+          />
+
+          <Route
+            path="/register"
+            element={
+              <CustomerLayout>
+                <RegisterPage />
               </CustomerLayout>
             }
           />
@@ -109,6 +159,11 @@ function App() {
                 <PaymentPage />
               </CustomerLayout>
             }
+          />
+
+          <Route
+            path="/payment-old"
+            element={<Payment />}
           />
 
           <Route

@@ -45,7 +45,7 @@ function HeroSection() {
         <p className="font-body text-[18px] leading-[1.6] tracking-[0.01em] mb-10 text-surface-container opacity-90 max-w-xl mx-auto">
           Khám phá bộ sưu tập Thu Đông mới nhất tại AMAZING.
         </p>
-        <Button variant="primary" size="lg" href="#categories">
+        <Button variant="primary" size="lg" href="/collections">
           Xem ngay
         </Button>
       </div>
