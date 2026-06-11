@@ -4,7 +4,7 @@ import Logo from './Logo'
 import MiniCart from './MiniCart'
 import CartToast from './CartToast'
 import { useCartStore } from '../store/cartStore'
-import { useAuthStore } from '../pages/store/authStore'
+import { useAuthStore } from '../store/authStore'
 
 /* ============================================================
    Navbar Component — AMAZING Design System

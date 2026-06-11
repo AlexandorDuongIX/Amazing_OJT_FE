@@ -8,16 +8,12 @@ import HomePage from './pages/customer/HomePage'
 import ProductListPage from './pages/customer/ProductListPage'
 import ProductDetailPage from './pages/customer/ProductDetailPage'
 import CartPage from './pages/customer/CartPage'
-import CheckoutPage from './pages/customer/CheckoutPage'
-import PaymentPage from './pages/customer/PaymentPage'
 import OrderSuccessPage from './pages/customer/OrderSucessPage'
 import { LoginPage, RegisterPage } from './pages/customer/AuthPages'
 import Payment from './pages/customer/Payment'
 
 import AdminLayout from './components/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
-import AdminOrders from './pages/admin/AdminOrders'
-import AdminPayments from './pages/admin/AdminPayments'
 
 /* ── Scroll to top on every route change ── */
 function ScrollToTop() {
@@ -144,25 +140,7 @@ function App() {
           />
 
           <Route
-            path="/checkout"
-            element={
-              <CustomerLayout>
-                <CheckoutPage />
-              </CustomerLayout>
-            }
-          />
-
-          <Route
             path="/payment"
-            element={
-              <CustomerLayout>
-                <PaymentPage />
-              </CustomerLayout>
-            }
-          />
-
-          <Route
-            path="/payment-old"
             element={<Payment />}
           />
 
@@ -182,24 +160,6 @@ function App() {
             element={
               <AdminLayout>
                 <AdminDashboard />
-              </AdminLayout>
-            }
-          />
-
-          <Route
-            path="/admin/orders"
-            element={
-              <AdminLayout>
-                <AdminOrders />
-              </AdminLayout>
-            }
-          />
-
-          <Route
-            path="/admin/payments"
-            element={
-              <AdminLayout>
-                <AdminPayments />
               </AdminLayout>
             }
           />

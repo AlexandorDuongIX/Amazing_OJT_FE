@@ -8,8 +8,8 @@ interface CartState {
   isOpen: boolean
   toast: CartToastState
   addItem: (item: CartItem) => void
-  removeItem: (id: number, size: string, color: string) => void
-  updateQuantity: (id: number, size: string, color: string, qty: number) => void
+  removeItem: (id: string, size: string, color: string) => void
+  updateQuantity: (id: string, size: string, color: string, qty: number) => void
   clearCart: () => void
   openCart: () => void
   closeCart: () => void
