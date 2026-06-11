@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { TrendingDown, PauseCircle, type LucideIcon } from "lucide-react";
 
 /* ============================================================
    InventoryPage — Quản lý Sản phẩm
@@ -13,6 +14,15 @@ import { useState } from "react";
 // ─── Types ──────────────────────────────────────────────────
 
 type ProductStatus = "ACTIVE" | "LOW STOCK" | "OUT OF STOCK" | "DRAFT";
+
+type StatCardProps = {
+  label: string;
+  value: number | string;
+  badge?: string;
+  badgeColor?: string;
+  icon?: LucideIcon;
+  accentColor?: string;
+};
 
 interface Product {
   id: string;
@@ -205,47 +215,31 @@ function StatCard({
   value,
   badge,
   badgeColor,
-  icon,
-  accent,
-}: {
-  label: string;
-  value: string | number;
-  badge?: string;
-  badgeColor?: string;
-  icon?: string;
-  accent?: boolean;
-}) {
+  icon: Icon,
+  accentColor = "#1A1A1A",
+}: StatCardProps) {
   return (
-    <div
-      className={`flex-1 min-w-0 px-8 py-6 border border-outline-variant/30 bg-surface-container-low ${
-        accent ? "border-l-2 border-l-secondary" : ""
-      }`}
-    >
-      <p className="font-label uppercase tracking-widest text-caption text-on-surface-variant/70 mb-3">
-        {label}
-      </p>
-      <div className="flex items-end gap-3">
-        <span
-          className={`font-headline font-bold text-[28px] leading-none ${
-            accent ? "text-secondary" : "text-on-surface"
-          }`}
-        >
-          {value}
+    <div className="relative flex-1 bg-surface px-6 py-5">
+      {/* Thanh màu bên trái */}
+      <div
+        className="absolute left-0 top-0 h-full w-1"
+        style={{ backgroundColor: accentColor }}
+      />
+
+      <div className="flex flex-col gap-2">
+        <span className="font-label uppercase tracking-widest text-caption text-on-surface-variant/60">
+          {label}
         </span>
-        {badge && (
-          <span
-            className={`font-label text-caption font-semibold mb-0.5 ${badgeColor}`}
-          >
-            {badge}
+
+        <div className="flex items-center gap-2">
+          <span className="text-[28px] font-semibold text-on-surface">
+            {value}
           </span>
-        )}
-        {icon && (
-          <span
-            className={`material-symbols-outlined text-[20px] mb-0.5 ${badgeColor}`}
-          >
-            {icon}
-          </span>
-        )}
+
+          {badge && <span className={`text-sm ${badgeColor}`}>{badge}</span>}
+
+          {Icon && <Icon size={16} className="text-on-surface-variant/50" />}
+        </div>
       </div>
     </div>
   );
@@ -274,7 +268,7 @@ function StockBar({
       >
         {stock}
       </span>
-      <div className="w-16 h-[3px] bg-outline-variant/30 rounded-full overflow-hidden">
+      <div className="w-16 h-1 bg-outline-variant/30 rounded-full overflow-hidden">
         <div
           className={`h-full rounded-full ${stockBarColor(status)}`}
           style={{ width: `${pct}%` }}
@@ -299,6 +293,34 @@ export default function InventoryPage() {
   const outOfStock = MOCK_PRODUCTS.filter(
     (p) => p.status === "OUT OF STOCK",
   ).length;
+  const statsData = [
+    {
+      label: "Tổng sản phẩm",
+      value: totalProducts,
+      badge: "+2.4%",
+      badgeColor: "text-[#D4AF37]",
+      accentColor: "#1A1A1A",
+    },
+    {
+      label: "Sắp hết hàng",
+      value: lowStock,
+      icon: TrendingDown,
+      accentColor: "#D4AF37",
+    },
+    {
+      label: "Đang bán",
+      value: active,
+      badge: "Live",
+      badgeColor: "text-[#757575]",
+      accentColor: "#1A1A1A",
+    },
+    {
+      label: "Hết hàng",
+      value: outOfStock,
+      icon: PauseCircle,
+      accentColor: "#757575",
+    },
+  ];
 
   // ── Filtering
   const filtered = MOCK_PRODUCTS.filter((p) => {
@@ -362,32 +384,10 @@ export default function InventoryPage() {
       </div>
 
       {/* ── Stats Cards ── */}
-      <div className="flex gap-0 border border-outline-variant/30 divide-x divide-outline-variant/30">
-        <StatCard
-          label="Tổng sản phẩm"
-          value="1,240"
-          badge="+2.4%"
-          badgeColor="text-emerald-500"
-        />
-        <StatCard
-          label="Sắp hết hàng"
-          value={lowStock}
-          icon="trending_down"
-          badgeColor="text-amber-500"
-          accent
-        />
-        <StatCard
-          label="Đang bán"
-          value="1,150"
-          badge="Live"
-          badgeColor="text-on-surface-variant/50"
-        />
-        <StatCard
-          label="Hết hàng"
-          value={outOfStock}
-          icon="pause_circle"
-          badgeColor="text-on-surface-variant/40"
-        />
+      <div className="flex border border-outline-variant/30 divide-x divide-outline-variant/30">
+        {statsData.map((item, index) => (
+          <StatCard key={index} {...item} />
+        ))}
       </div>
 
       {/* ── Filter Bar ── */}
@@ -414,7 +414,7 @@ export default function InventoryPage() {
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="border border-outline-variant bg-surface-container-low px-4 py-2.5 text-body-md text-on-surface focus:outline-none focus:border-on-surface appearance-none pr-10 min-w-[180px] cursor-pointer"
+            className="border border-outline-variant bg-surface-container-low px-4 py-2.5 text-body-md text-on-surface focus:outline-none focus:border-on-surface appearance-none pr-10 min-w-45 cursor-pointer"
           >
             {CATEGORIES.map((c) => (
               <option key={c}>{c}</option>
@@ -430,7 +430,7 @@ export default function InventoryPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="border border-outline-variant bg-surface-container-low px-4 py-2.5 text-body-md text-on-surface focus:outline-none focus:border-on-surface appearance-none pr-10 min-w-[180px] cursor-pointer"
+            className="border border-outline-variant bg-surface-container-low px-4 py-2.5 text-body-md text-on-surface focus:outline-none focus:border-on-surface appearance-none pr-10 min-w-45 cursor-pointer"
           >
             {STATUSES.map((s) => (
               <option key={s}>{s}</option>
@@ -493,7 +493,7 @@ export default function InventoryPage() {
                 className="grid grid-cols-[80px_1fr_140px_160px_140px_120px_80px] gap-4 px-6 py-5 items-center hover:bg-surface-container-low/60 transition-colors group"
               >
                 {/* Image */}
-                <div className="w-14 h-14 bg-surface-container-highest overflow-hidden flex-shrink-0">
+                <div className="w-14 h-14 bg-surface-container-highest overflow-hidden shrink-0">
                   <img
                     src={product.image}
                     alt={product.name}

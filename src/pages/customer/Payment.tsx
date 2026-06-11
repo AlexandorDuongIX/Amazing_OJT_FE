@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { Info, Ticket, ChevronRight } from "lucide-react";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
@@ -14,12 +15,16 @@ interface SavedAddress {
   phone: string;
 }
 
-interface AddressForm {
+interface AddressFormInput {
   fullName: string;
   province: string;
   ward: string;
   addressDetail: string;
   phone: string;
+}
+
+interface NewAddressFormProps {
+  onConfirm: () => void;
 }
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
@@ -159,51 +164,22 @@ function VoucherBox() {
 }
 
 // ─── Address Form (State 1) ───────────────────────────────────────────────────
-function NewAddressForm({ onConfirm }: { onConfirm: () => void }) {
-  const [form, setForm] = useState<AddressForm>({
-    fullName: "",
-    province: "",
-    ward: "",
-    addressDetail: "",
-    phone: "",
+function NewAddressForm({ onConfirm }: NewAddressFormProps) {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isValid },
+  } = useForm<AddressFormInput>({
+    mode: "onChange",
   });
 
-  const [errors, setErrors] = useState<Partial<AddressForm>>({});
-
-  const handleChange = (field: keyof AddressForm, value: string) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
-
-    // clear lỗi khi user nhập lại
-    setErrors((prev) => ({ ...prev, [field]: "" }));
-  };
-
-  const validate = () => {
-    const newErrors: Partial<AddressForm> = {};
-
-    if (!form.fullName.trim()) newErrors.fullName = "Vui lòng nhập họ và tên";
-    if (!form.province.trim()) newErrors.province = "Vui lòng chọn tỉnh/thành";
-    if (!form.ward.trim()) newErrors.ward = "Vui lòng chọn phường";
-    if (!form.addressDetail.trim())
-      newErrors.addressDetail = "Vui lòng nhập địa chỉ chi tiết";
-
-    if (!form.phone.trim()) {
-      newErrors.phone = "Vui lòng nhập số điện thoại";
-    } else if (!/^(0|\+84)[3-9][0-9]{8}$/.test(form.phone)) {
-      newErrors.phone = "Số điện thoại không hợp lệ";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = () => {
-    if (validate()) {
-      onConfirm();
-    }
+  const onSubmit = (data: AddressFormInput) => {
+    console.log("Dữ liệu địa chỉ hợp lệ:", data);
+    onConfirm(); 
   };
 
   return (
-    <div>
+    <form onSubmit={handleSubmit(onSubmit)}>
       <h3 className="text-lg font-body mb-1">Đăng ký địa chỉ mới</h3>
 
       <p className="text-sm">
@@ -228,13 +204,12 @@ function NewAddressForm({ onConfirm }: { onConfirm: () => void }) {
           <input
             type="text"
             placeholder="Vui lòng nhập họ và tên"
-            value={form.fullName}
-            onChange={(e) => handleChange("fullName", e.target.value)}
+            {...register("fullName", { required: "Vui lòng nhập họ và tên" })}
             className={`w-full border px-3 py-2.5 text-sm placeholder-gray-400 focus:outline-none transition-colors
               ${errors.fullName ? "border-red-500" : "border-gray-400 focus:border-black"}`}
           />
           {errors.fullName && (
-            <p className="text-xs text-red-500 mt-1">{errors.fullName}</p>
+            <p className="text-xs text-red-500 mt-1">{errors.fullName.message}</p>
           )}
         </div>
 
@@ -246,13 +221,12 @@ function NewAddressForm({ onConfirm }: { onConfirm: () => void }) {
           <input
             type="text"
             placeholder="Vui lòng chọn 1 thành phố/tỉnh"
-            value={form.province}
-            onChange={(e) => handleChange("province", e.target.value)}
+            {...register("province", { required: "Vui lòng chọn tỉnh/thành" })}
             className={`w-full border px-3 py-2.5 text-sm placeholder-gray-400 focus:outline-none transition-colors
               ${errors.province ? "border-red-500" : "border-gray-400 focus:border-black"}`}
           />
           {errors.province && (
-            <p className="text-xs text-red-500 mt-1">{errors.province}</p>
+            <p className="text-xs text-red-500 mt-1">{errors.province.message}</p>
           )}
         </div>
 
@@ -264,17 +238,15 @@ function NewAddressForm({ onConfirm }: { onConfirm: () => void }) {
           <input
             type="text"
             placeholder="Vui lòng chọn phường của bạn"
-            value={form.ward}
-            onChange={(e) => handleChange("ward", e.target.value)}
+            {...register("ward", { required: "Vui lòng chọn phường" })}
             className={`w-full border px-3 py-2.5 text-sm placeholder-gray-400 focus:outline-none transition-colors
               ${errors.ward ? "border-red-500" : "border-gray-400 focus:border-black"}`}
           />
           {errors.ward && (
-            <p className="text-xs text-red-500 mt-1">{errors.ward}</p>
+            <p className="text-xs text-red-500 mt-1">{errors.ward.message}</p>
           )}
         </div>
 
-        {/* Address detail */}
         <div>
           <label className="text-base font-body text-gray-700 mb-1 block">
             Chi tiết địa chỉ <span className="text-blue-700">*</span>
@@ -282,13 +254,12 @@ function NewAddressForm({ onConfirm }: { onConfirm: () => void }) {
           <input
             type="text"
             placeholder="Số nhà, số đường, toà nhà,..."
-            value={form.addressDetail}
-            onChange={(e) => handleChange("addressDetail", e.target.value)}
+            {...register("addressDetail", { required: "Vui lòng nhập địa chỉ chi tiết" })}
             className={`w-full border px-3 py-2.5 text-sm placeholder-gray-400 focus:outline-none transition-colors
               ${errors.addressDetail ? "border-red-500" : "border-gray-400 focus:border-black"}`}
           />
           {errors.addressDetail && (
-            <p className="text-xs text-red-500 mt-1">{errors.addressDetail}</p>
+            <p className="text-xs text-red-500 mt-1">{errors.addressDetail.message}</p>
           )}
         </div>
 
@@ -300,32 +271,35 @@ function NewAddressForm({ onConfirm }: { onConfirm: () => void }) {
           <input
             type="tel"
             placeholder="Vui lòng nhập số điện thoại"
-            value={form.phone}
-            onChange={(e) => handleChange("phone", e.target.value)}
+            {...register("phone", { 
+              required: "Vui lòng nhập số điện thoại",
+              pattern: {
+                value: /^(0|\+84)[3-9][0-9]{8}$/,
+                message: "Số điện thoại không hợp lệ"
+              }
+            })}
             className={`w-full border px-3 py-2.5 text-sm placeholder-gray-400 focus:outline-none transition-colors
               ${errors.phone ? "border-red-500" : "border-gray-400 focus:border-black"}`}
           />
           {errors.phone && (
-            <p className="text-xs text-red-500 mt-1">{errors.phone}</p>
+            <p className="text-xs text-red-500 mt-1">{errors.phone.message}</p>
           )}
         </div>
 
         {/* Button */}
         <div className="pt-2">
-          <button
-            onClick={handleSubmit}
-            className="w-fit px-10 py-2.5 bg-black text-white rounded-full hover:bg-black/90 transition"
           <Button
+            type="submit"  
             variant="primary-border"
-            onClick={onConfirm}
-            disabled={!isValid}
-            className="w-fit px-10"
+            size="md"                 
+            disabled={!isValid} 
+            className="w-fit"         
           >
             XÁC NHẬN
-          </button>
+          </Button>
         </div>
       </div>
-    </div>
+    </form>
   );
 }
 
@@ -353,7 +327,7 @@ function SavedAddressCard({
       <div className="border border-gray-200 p-4 mb-4 relative">
         {/* Checkmark */}
         <div className="flex items-start gap-3">
-          <div className="mt-0.5 w-5 h-5 rounded-full bg-black flex items-center justify-center flex-shrink-0">
+          <div className="mt-0.5 w-5 h-5 rounded-full bg-black flex items-center justify-center shrink-0">
             <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
               <path
                 d="M1 4l3 3 5-6"
@@ -449,7 +423,7 @@ export default function Payment() {
         từ 1.000.000 VND.
       </div>
 
-      <main className="flex-1 max-w-[1200px] mx-auto w-full px-4 sm:px-6 lg:px-8 py-10">
+      <main className="flex-1 max-w-300 mx-auto w-full px-4 sm:px-6 lg:px-8 py-10">
         <h1 className="text-3xl font-body mb-8 tracking-wide">Thanh Toán</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-8 items-start">
