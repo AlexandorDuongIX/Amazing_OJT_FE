@@ -8,7 +8,7 @@ import type { ReactNode, ButtonHTMLAttributes, AnchorHTMLAttributes } from 'reac
    Can render as <button> or <a> via the `href` prop.
    ============================================================ */
 
-type ButtonVariant = 'primary' | 'outline' | 'gold' | 'ghost'
+type ButtonVariant = 'primary' | 'outline' | 'gold' | 'ghost' | 'primary-border'
 type ButtonSize = 'sm' | 'md' | 'lg'
 
 interface ButtonBaseProps {
@@ -40,6 +40,8 @@ const variantClasses: Record<ButtonVariant, string> = {
     'bg-secondary-fixed-dim text-on-secondary-fixed hover:bg-secondary hover:text-on-secondary',
   ghost:
     'bg-transparent text-primary hover:text-secondary-fixed-dim',
+  'primary-border':
+    'border border-primary bg-on-tertiary text-tertiary hover:bg-secondary-container hover:text-on-secondary-container hover:border-secondary-container',
 }
 
 const sizeClasses: Record<ButtonSize, string> = {
@@ -62,6 +64,7 @@ export default function Button({
     'transition-colors duration-300',
     'cursor-pointer select-none',
     'whitespace-nowrap',
+    'disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none',
     variantClasses[variant],
     sizeClasses[size],
     fullWidth ? 'w-full' : '',
