@@ -122,7 +122,12 @@ function ProductCard({ product }: ProductCardProps) {
 
         {/* Add to Cart — Slides up on hover */}
         <div className="absolute bottom-0 left-0 w-full p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out">
-          <button className="w-full py-3 bg-primary text-on-primary font-label text-[14px] font-semibold uppercase tracking-wider hover:bg-secondary transition-colors duration-200">
+          <button
+            onClick={(event) => {
+              event.stopPropagation()
+            }}
+            className="w-full py-3 bg-primary text-on-primary font-label text-[14px] font-semibold uppercase tracking-wider hover:bg-secondary transition-colors duration-200"
+          >
             Thêm Vào Giỏ
           </button>
         </div>
