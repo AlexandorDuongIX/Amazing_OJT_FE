@@ -315,6 +315,11 @@ function NewAddressForm({ onConfirm }: { onConfirm: () => void }) {
           <button
             onClick={handleSubmit}
             className="w-fit px-10 py-2.5 bg-black text-white rounded-full hover:bg-black/90 transition"
+          <Button
+            variant="primary-border"
+            onClick={onConfirm}
+            disabled={!isValid}
+            className="w-fit px-10"
           >
             XÁC NHẬN
           </button>
@@ -387,7 +392,11 @@ function SavedAddressCard({
         <Button variant="outline" onClick={onRegisterNew} className="w-full">
           ĐĂNG KÝ ĐỊA CHỈ MỚI
         </Button>
-        <Button onClick={onContinue} className="w-full">
+        <Button
+          variant="primary-border"
+          onClick={onContinue}
+          className="w-full"
+        >
           TIẾP TỤC
         </Button>
       </div>

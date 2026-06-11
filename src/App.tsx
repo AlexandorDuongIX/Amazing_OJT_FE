@@ -1,30 +1,20 @@
 import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom'
+
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import HomePage from './pages/customer/HomePage'
+
 import ProductListPage from './pages/customer/ProductListPage'
-import AdminLayout from './components/AdminLayout'
-import AdminDashboard from './pages/admin/AdminDashboard'
+import ProductDetailPage from './pages/customer/ProductDetailPage'
+import CartPage from './pages/customer/CartPage'
+import OrderSuccessPage from './pages/customer/OrderSucessPage'
+import { LoginPage, RegisterPage } from './pages/customer/AuthPages'
 import Payment from './pages/customer/Payment'
 import AdminInventory from './pages/admin/AdminInventory'
 
-function CustomerLayout() {
-  return (
-    <>
-      <Navbar />
-      <main className="pt-[80px]">
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/collections" element={<ProductListPage />} />
-          <Route path="/collections/:category" element={<ProductListPage />} />
-          <Route path="*" element={<HomePage />} />
-        </Routes>
-      </main>
-      <Footer />
-    </>
-  )
-}
+import AdminLayout from './components/AdminLayout'
+import AdminDashboard from './pages/admin/AdminDashboard'
 
 /* ── Scroll to top on every route change ── */
 function ScrollToTop() {
@@ -33,6 +23,18 @@ function ScrollToTop() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [pathname])
   return null
+}
+
+function CustomerLayout({ children }: { children?: React.ReactNode }) {
+  return (
+    <>
+      <Navbar />
+      <main className="pt-[80px]">
+        {children ?? <HomePage />}
+      </main>
+      <Footer />
+    </>
+  )
 }
 
 function RoleSwitcher() {
@@ -51,6 +53,7 @@ function RoleSwitcher() {
       >
         Khách hàng
       </Link>
+
       <Link
         to="/admin"
         className={`px-4 py-2 rounded-full font-label text-[12px] font-bold uppercase tracking-wider transition-all duration-300 ${
@@ -71,10 +74,88 @@ function App() {
       <ScrollToTop />
       <div className="bg-background text-on-background font-body antialiased selection:bg-secondary-container selection:text-on-secondary-container min-h-screen">
         <Routes>
+
           {/* Customer Routes */}
-          <Route path="/*" element={<CustomerLayout />} />
-          
+
+          <Route
+            path="/"
+            element={
+              <CustomerLayout>
+                <HomePage />
+              </CustomerLayout>
+            }
+          />
+
+          <Route
+            path="/collections"
+            element={
+              <CustomerLayout>
+                <ProductListPage />
+              </CustomerLayout>
+            }
+          />
+
+          <Route
+            path="/collections/:category"
+            element={
+              <CustomerLayout>
+                <ProductListPage />
+              </CustomerLayout>
+            }
+          />
+
+          <Route
+            path="/product/:productId"
+            element={
+              <CustomerLayout>
+                <ProductDetailPage />
+              </CustomerLayout>
+            }
+          />
+
+          <Route
+            path="/login"
+            element={
+              <CustomerLayout>
+                <LoginPage />
+              </CustomerLayout>
+            }
+          />
+
+          <Route
+            path="/register"
+            element={
+              <CustomerLayout>
+                <RegisterPage />
+              </CustomerLayout>
+            }
+          />
+
+          <Route
+            path="/cart"
+            element={
+              <CustomerLayout>
+                <CartPage />
+              </CustomerLayout>
+            }
+          />
+
+          <Route
+            path="/payment"
+            element={<Payment />}
+          />
+
+          <Route
+            path="/success"
+            element={
+              <CustomerLayout>
+                <OrderSuccessPage />
+              </CustomerLayout>
+            }
+          />
+
           {/* Admin Routes */}
+
           <Route
             path="/admin"
             element={
@@ -98,9 +179,19 @@ function App() {
 
           {/* Payment Route */}  
           <Route path="/payment" element={<Payment />} />
+
+          {/* Catch-all redirect to Home */}
+
+          <Route
+            path="*"
+            element={
+              <CustomerLayout>
+                <HomePage />
+              </CustomerLayout>
+            }
+          />
         </Routes>
-        
-        {/* Floating Switcher for Easy Testing */}
+
         <RoleSwitcher />
       </div>
     </BrowserRouter>
