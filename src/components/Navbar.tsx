@@ -21,6 +21,7 @@ interface NavLink {
 }
 
 const navLinks: NavLink[] = [
+  { label: 'Bộ sưu tập', to: '/collections', matchPrefix: '/collections' },
   { label: 'Nam', to: '/collections/nam', matchPrefix: '/collections/nam' },
   { label: 'Nữ', to: '/collections/nu', matchPrefix: '/collections/nu' },
   { label: 'Phụ kiện', to: '/collections/phu-kien', matchPrefix: '/collections/phu-kien' },
