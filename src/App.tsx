@@ -8,6 +8,7 @@ import AdminLayout from './components/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import { LoginPage, RegisterPage } from './pages/customer/AuthPages'
 import Payment from './pages/customer/Payment'
+import ProductDetailPage from './pages/customer/ProductDetailPage'
 
 function CustomerLayout() {
   return (
@@ -18,6 +19,7 @@ function CustomerLayout() {
           <Route path="/" element={<HomePage />} />
           <Route path="/collections" element={<ProductListPage />} />
           <Route path="/collections/:category" element={<ProductListPage />} />
+          <Route path="/product/:productId" element={<ProductDetailPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="*" element={<HomePage />} />
