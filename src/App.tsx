@@ -10,6 +10,7 @@ import ProductDetailPage from './pages/customer/ProductDetailPage'
 import CartPage from './pages/customer/CartPage'
 import OrderSuccessPage from './pages/customer/OrderSucessPage'
 import { LoginPage, RegisterPage } from './pages/customer/AuthPages'
+import WishlistPage from './pages/customer/WishlistPage'
 import Payment from './pages/customer/Payment'
 
 import AdminLayout from './components/AdminLayout'
@@ -135,6 +136,15 @@ function App() {
             element={
               <CustomerLayout>
                 <CartPage />
+              </CustomerLayout>
+            }
+          />
+
+          <Route
+            path="/wishlist"
+            element={
+              <CustomerLayout>
+                <WishlistPage />
               </CustomerLayout>
             }
           />
