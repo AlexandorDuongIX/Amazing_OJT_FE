@@ -103,11 +103,11 @@ function AuthField({
                     type={type}
                     value={value}
                     onChange={(event) => onChange(event.target.value)}
-                    autoComplete={autoComplete}
+                    autoComplete={autoComplete || 'off'}
                     className="h-full min-w-0 flex-1 bg-transparent font-body text-[13px] font-light text-primary outline-none placeholder:text-on-surface-variant/70"
                     placeholder="your@email.com"
                     aria-invalid={!!error}
-                    aria-describedby={error ? `${id}-error` : undefined}
+                    {...(error && { 'aria-describedby': `${id}-error` })}
                 />
             </div>
             {error && (
@@ -282,10 +282,13 @@ export function RegisterPage() {
     const navigate = useNavigate()
     const register = useAuthStore((state) => state.register)
     const [email, setEmail] = useState('')
+    const [birthYear, setBirthYear] = useState('')
     const [password, setPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
+
     const [errors, setErrors] = useState({
         email: '',
+        birthYear: '',
         password: '',
         confirmPassword: '',
     })
@@ -293,15 +296,34 @@ export function RegisterPage() {
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault()
 
+        const currentYear = new Date().getFullYear()
+
         const nextErrors = {
             email: validateEmail(email),
+
+            birthYear:
+                !birthYear
+                    ? 'Năm sinh là bắt buộc.'
+                    : Number(birthYear) > currentYear
+                    ? 'Năm sinh không hợp lệ.'
+                    : '',
+
             password: validatePassword(password),
+
             confirmPassword:
-                confirmPassword === password ? '' : 'Mật khẩu nhập lại không khớp.',
+                confirmPassword === password
+                    ? ''
+                    : 'Mật khẩu nhập lại không khớp.',
         }
 
         setErrors(nextErrors)
-        if (nextErrors.email || nextErrors.password || nextErrors.confirmPassword) {
+
+        if (
+            nextErrors.email ||
+            nextErrors.birthYear ||
+            nextErrors.password ||
+            nextErrors.confirmPassword
+        ) {
             return
         }
 
@@ -322,6 +344,16 @@ export function RegisterPage() {
                         error={errors.email}
                         autoComplete="email"
                         type="email"
+                    />
+                    <AuthField
+                        id="register-birth-year"
+                        label="NĂM SINH"
+                        icon="mail"
+                        value={birthYear}
+                        onChange={setBirthYear}
+                        error={errors.birthYear}
+                        autoComplete="off"
+                        type="number"
                     />
                     <PasswordField
                         id="register-password"

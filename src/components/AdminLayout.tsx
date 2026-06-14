@@ -22,6 +22,7 @@ const sidebarLinks: SidebarLink[] = [
   { label: 'Orders', href: '/admin/orders', icon: 'shopping_bag' },
   { label: 'Marketing', href: '/admin/marketing', icon: 'campaign' },
   { label: 'Reports', href: '/admin/reports', icon: 'analytics' },
+  { label: 'Quản lý Blog', href: '/admin/blogs', icon: 'article' },
   { label: 'Staff', href: '/admin/staff', icon: 'badge' },
 ]
 
