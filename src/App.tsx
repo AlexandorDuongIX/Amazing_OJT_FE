@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom'
 
 import Navbar from './components/Navbar'
@@ -8,15 +9,21 @@ import ProductListPage from './pages/customer/ProductListPage'
 import ProductDetailPage from './pages/customer/ProductDetailPage'
 import CartPage from './pages/customer/cart/CartPage'
 import CheckoutPage from './pages/customer/CheckoutPage'
-import PaymentPage from './pages/customer/PaymentPage'
 import OrderSuccessPage from './pages/customer/OrderSucessPage'
 import OrderHistoryPage from './pages/customer/order-history'
 import { LoginPage, RegisterPage } from './pages/customer/AuthPages'
 
 import AdminLayout from './components/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
-import AdminOrders from './pages/admin/AdminOrders'
-import AdminPayments from './pages/admin/AdminPayments'
+
+/* ── Scroll to top on every route change ── */
+function ScrollToTop() {
+  const { pathname } = useLocation()
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [pathname])
+  return null
+}
 
 function CustomerLayout({ children }: { children?: React.ReactNode }) {
   return (
@@ -38,20 +45,22 @@ function RoleSwitcher() {
     <div className="fixed bottom-6 right-6 z-[9999] bg-background/90 border border-outline-variant/30 rounded-full shadow-2xl p-1.5 flex items-center gap-1 backdrop-blur-md">
       <Link
         to="/"
-        className={`px-4 py-2 rounded-full font-label text-[12px] font-bold uppercase tracking-wider transition-all duration-300 ${!isAdmin
-          ? 'bg-primary text-on-primary shadow-md'
-          : 'text-on-surface-variant hover:text-primary'
-          }`}
+        className={`px-4 py-2 rounded-full font-label text-[12px] font-bold uppercase tracking-wider transition-all duration-300 ${
+          !isAdmin
+            ? 'bg-primary text-on-primary shadow-md'
+            : 'text-on-surface-variant hover:text-primary'
+        }`}
       >
         Khách hàng
       </Link>
 
       <Link
         to="/admin"
-        className={`px-4 py-2 rounded-full font-label text-[12px] font-bold uppercase tracking-wider transition-all duration-300 ${isAdmin
-          ? 'bg-primary text-on-primary shadow-md'
-          : 'text-on-surface-variant hover:text-primary'
-          }`}
+        className={`px-4 py-2 rounded-full font-label text-[12px] font-bold uppercase tracking-wider transition-all duration-300 ${
+          isAdmin
+            ? 'bg-primary text-on-primary shadow-md'
+            : 'text-on-surface-variant hover:text-primary'
+        }`}
       >
         Admin
       </Link>
@@ -62,6 +71,7 @@ function RoleSwitcher() {
 function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <div className="bg-background text-on-background font-body antialiased selection:bg-secondary-container selection:text-on-secondary-container min-h-screen">
         <Routes>
 
@@ -140,15 +150,6 @@ function App() {
           />
 
           <Route
-            path="/payment"
-            element={
-              <CustomerLayout>
-                <PaymentPage />
-              </CustomerLayout>
-            }
-          />
-
-          <Route
             path="/success"
             element={
               <CustomerLayout>
@@ -177,24 +178,6 @@ function App() {
             }
           />
 
-          <Route
-            path="/admin/orders"
-            element={
-              <AdminLayout>
-                <AdminOrders />
-              </AdminLayout>
-            }
-          />
-
-          <Route
-            path="/admin/payments"
-            element={
-              <AdminLayout>
-                <AdminPayments />
-              </AdminLayout>
-            }
-          />
-
           {/* Catch-all redirect to Home */}
 
           <Route
@@ -207,7 +190,6 @@ function App() {
           />
         </Routes>
 
-        {/* Floating Switcher for Easy Testing */}
         <RoleSwitcher />
       </div>
     </BrowserRouter>

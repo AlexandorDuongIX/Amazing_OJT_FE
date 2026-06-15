@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import axios from 'axios'
 import { useCartStore } from '../../store/cartStore'
+import type { Product } from '../../types/product'
 
 /* ============================================================
    ProductListPage — AMAZING Clothing Shop (Customer Page)
@@ -11,25 +12,6 @@ import { useCartStore } from '../../store/cartStore'
    2. Product Grid (2 cols mobile / 4 cols desktop)
    3. Load More Button
    ============================================================ */
-
-/* ---------- Product Data (from API) ---------- */
-interface Product {
-  id: number
-  name: string
-  description: string
-  price: number
-  discountPrice: number
-  category: string
-  sku: string
-  brand: string
-  color: string
-  size: string
-  material: string
-  imageUrl: string
-  rating: number
-  reviewCount: number
-  isActive: boolean
-}
 
 /* ---------- Helpers ---------- */
 const formatVND = (amount: number) =>
@@ -97,7 +79,7 @@ function ProductCard({ product, onAddToCart }: ProductCardProps) {
       <div className="relative aspect-[3/4] overflow-hidden mb-4 bg-surface-container-low">
         {/* Product Image */}
         <img
-          src={imgError ? 'https://via.placeholder.com/400x533?text=No+Image' : product.imageUrl}
+          src={imgError ? 'https://via.placeholder.com/400x533?text=No+Image' : (product.images?.[0] ?? '')}
           alt={product.name}
           onError={() => setImgError(true)}
           className="object-cover w-full h-full absolute inset-0 transition-transform duration-500 ease-in-out group-hover:scale-105"
@@ -199,7 +181,7 @@ export default function ProductListPage() {
     setLoading(true)
     setError(null)
     axios
-      .get<Product[]>(`${apiBase}/product`)
+      .get<Product[]>(`${apiBase}/data`)
       .then((res) => {
         setProducts(res.data)
       })
@@ -224,22 +206,22 @@ export default function ProductListPage() {
   }, [products])
 
   const colorOptions = useMemo(() => {
-    const colors = [...new Set(products.map((p) => p.color))]
+    const colors = [...new Set(products.flatMap((p) => p.colors?.map((c) => c.name) ?? []))]
     return colors.map((c) => ({ value: c, label: c }))
   }, [products])
 
   const sizeOptions = useMemo(() => {
-    const sizes = [...new Set(products.map((p) => p.size))]
+    const sizes = [...new Set(products.flatMap((p) => p.sizes ?? []))]
     return sizes.map((s) => ({ value: s, label: s }))
   }, [products])
 
   /* ── Filter + Sort logic ── */
   const filteredProducts = useMemo(() => {
-    let list = products.filter((p) => p.isActive)
+    let list = [...products]
 
     if (filterCategory) list = list.filter((p) => p.category === filterCategory)
-    if (filterColor) list = list.filter((p) => p.color === filterColor)
-    if (filterSize) list = list.filter((p) => p.size === filterSize)
+    if (filterColor) list = list.filter((p) => p.colors?.some((c) => c.name === filterColor))
+    if (filterSize) list = list.filter((p) => p.sizes?.includes(filterSize))
 
     if (priceRange === 'duoi-300k') list = list.filter((p) => (p.discountPrice || p.price) < 300000)
     else if (priceRange === '300k-600k')
@@ -341,12 +323,12 @@ export default function ProductListPage() {
                     id: product.id,
                     name: product.name,
                     price: product.discountPrice || product.price,
-                    imageUrl: product.imageUrl,
-                    size: product.size,
-                    color: product.color,
+                    imageUrl: product.images?.[0] ?? '',
+                    size: product.sizes?.[0] ?? '',
+                    color: product.colors?.[0]?.value ?? '',
                     quantity: 1,
                   })
-                  showToast(product.name, product.imageUrl, product.discountPrice || product.price)
+                  showToast(product.name, product.images?.[0] ?? '', product.discountPrice || product.price)
                 }}
               />
             ))}
