@@ -37,7 +37,9 @@ export default function Navbar() {
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const { items, toggleCart } = useCartStore()
   const totalItems = items.reduce((sum, i) => sum + i.quantity, 0)
+
   const location = useLocation()
+  const { user, logout } = useAuthStore()
 
   const { user, logout } = useAuthStore()
 
@@ -63,10 +65,11 @@ export default function Navbar() {
     <>
       <header
         id="main-header"
-        className={`fixed top-0 w-full z-50 transition-all duration-300 border-b border-outline-variant/30 ${scrolled
-          ? 'bg-background/95 shadow-sm'
-          : 'bg-background/90 backdrop-blur-md'
-          }`}
+        className={`fixed top-0 w-full z-50 transition-all duration-300 border-b border-outline-variant/30 ${
+          scrolled
+            ? 'bg-background/95 shadow-sm'
+            : 'bg-background/90 backdrop-blur-md'
+        }`}
       >
         <div className="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-base w-full max-w-[1440px] mx-auto h-[80px]">
           {/* Mobile Menu Toggle */}
@@ -86,10 +89,11 @@ export default function Navbar() {
                 <Link
                   key={link.label}
                   to={link.to}
-                  className={`relative font-label text-[14px] font-semibold uppercase tracking-[0.1em] transition-colors duration-300 pb-1 ${active
-                    ? 'text-primary'
-                    : 'text-on-surface-variant hover:text-primary'
-                    }`}
+                  className={`relative font-label text-[14px] font-semibold uppercase tracking-[0.1em] transition-colors duration-300 pb-1 ${
+                    active
+                      ? 'text-primary'
+                      : 'text-on-surface-variant hover:text-primary'
+                  }`}
                 >
                   {link.label}
                   {/* Animated underline */}
@@ -186,9 +190,11 @@ export default function Navbar() {
             </div>
             <button onClick={toggleCart} className="text-primary hover:text-secondary-fixed-dim scale-95 active:scale-100 transition-transform cursor-pointer relative" aria-label="Giỏ hàng">
               <span className="material-symbols-outlined text-[24px]">shopping_bag</span>
-              <span className="absolute -top-1 -right-1 bg-tertiary text-on-tertiary text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
-                {totalItems}
-              </span>
+              {totalItems > 0 && (
+                <span className="absolute -top-1 -right-1 bg-tertiary text-on-tertiary text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
+                  {totalItems}
+                </span>
+              )}
             </button>
           </div>
         </div>
