@@ -156,6 +156,19 @@ export default function ProductDetailPage() {
     showToast(product.name, product.images?.[0] ?? '', displayPrice)
   }
 
+  const handleBuyNow = () => {
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: displayPrice,
+      imageUrl: product.images?.[0] ?? '',
+      size: selectedSize,
+      color: selectedColor,
+      quantity: 1,
+    })
+    navigate('/payment')
+  }
+
   return (
     <section className="w-full bg-background">
       <div className="max-w-[1220px] mx-auto px-4 md:px-8 py-6 md:py-10">
@@ -298,6 +311,7 @@ export default function ProductDetailPage() {
               </button>
               <button
                 type="button"
+                onClick={handleBuyNow}
                 className="h-11 md:h-12 w-full bg-primary font-label text-[11px] md:text-[12px] font-semibold uppercase tracking-[0.22em] text-on-primary transition-colors hover:bg-[#111111]"
               >
                 Mua Ngay

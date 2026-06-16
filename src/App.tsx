@@ -8,7 +8,7 @@ import HomePage from './pages/customer/HomePage'
 import ProductListPage from './pages/customer/ProductListPage'
 import ProductDetailPage from './pages/customer/ProductDetailPage'
 import CartPage from './pages/customer/cart/CartPage'
-import CheckoutPage from './pages/customer/CheckoutPage'
+import Payment from './pages/customer/Payment'
 import OrderSuccessPage from './pages/customer/OrderSucessPage'
 import OrderHistoryPage from './pages/customer/order-history'
 import { LoginPage, RegisterPage } from './pages/customer/AuthPages'
@@ -141,12 +141,8 @@ function App() {
           />
 
           <Route
-            path="/checkout"
-            element={
-              <CustomerLayout>
-                <CheckoutPage />
-              </CustomerLayout>
-            }
+            path="/payment"
+            element={<Payment />}
           />
 
           <Route

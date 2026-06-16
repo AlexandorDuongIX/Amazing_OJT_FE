@@ -68,7 +68,7 @@ export default function MiniCart() {
 
           {/* Action buttons */}
           <div className="flex flex-col gap-3 pt-3">
-            <Link to="/checkout" onClick={closeCart} className="w-full h-[48px] bg-[#d4af37] flex items-center justify-center font-label font-semibold text-[12px] text-on-surface uppercase tracking-[1px] hover:brightness-95 transition-all cursor-pointer">
+            <Link to="/payment" onClick={closeCart} className="w-full h-[48px] bg-[#d4af37] flex items-center justify-center font-label font-semibold text-[12px] text-on-surface uppercase tracking-[1px] hover:brightness-95 transition-all cursor-pointer">
               THANH TOÁN
             </Link>
             <Link
