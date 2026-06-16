@@ -41,8 +41,6 @@ export default function Navbar() {
   const location = useLocation()
   const { user, logout } = useAuthStore()
 
-  const { user, logout } = useAuthStore()
-
   const isActive = (link: NavLink) =>
     !!link.matchPrefix && location.pathname.startsWith(link.matchPrefix)
 
