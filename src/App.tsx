@@ -7,10 +7,11 @@ import HomePage from './pages/customer/HomePage'
 
 import ProductListPage from './pages/customer/ProductListPage'
 import ProductDetailPage from './pages/customer/ProductDetailPage'
-import CartPage from './pages/customer/CartPage'
-import OrderSuccessPage from './pages/customer/OrderSucessPage'
-import { LoginPage, RegisterPage } from './pages/customer/AuthPages'
+import CartPage from './pages/customer/cart/CartPage'
 import Payment from './pages/customer/Payment'
+import OrderSuccessPage from './pages/customer/OrderSucessPage'
+import OrderHistoryPage from './pages/customer/order-history'
+import { LoginPage, RegisterPage } from './pages/customer/AuthPages'
 
 import AdminLayout from './components/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
@@ -149,6 +150,15 @@ function App() {
             element={
               <CustomerLayout>
                 <OrderSuccessPage />
+              </CustomerLayout>
+            }
+          />
+
+          <Route
+            path="/orders"
+            element={
+              <CustomerLayout>
+                <OrderHistoryPage />
               </CustomerLayout>
             }
           />

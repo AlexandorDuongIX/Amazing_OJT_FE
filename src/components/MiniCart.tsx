@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { useCartStore } from '../store/cartStore'
 import MiniCartItem from './MiniCartItem'
 
@@ -61,17 +62,22 @@ export default function MiniCart() {
 
           {/* Free shipping note */}
           <p className="font-body italic font-normal text-[10px] text-on-surface-variant text-center leading-[15px]">
-            Miễn phí vận chuyển cho đơn từ 500.000 ₫
+            Giá tiền chưa bao gồm phí vận chuyển và chưa áp dụng mã
+            giảm giá
           </p>
 
           {/* Action buttons */}
           <div className="flex flex-col gap-3 pt-3">
-            <button className="w-full h-[48px] bg-[#d4af37] flex items-center justify-center font-label font-semibold text-[12px] text-on-surface uppercase tracking-[1px] hover:brightness-95 transition-all cursor-pointer">
+            <Link to="/payment" onClick={closeCart} className="w-full h-[48px] bg-[#d4af37] flex items-center justify-center font-label font-semibold text-[12px] text-on-surface uppercase tracking-[1px] hover:brightness-95 transition-all cursor-pointer">
               THANH TOÁN
-            </button>
-            <button className="w-full h-[48px] border border-on-surface flex items-center justify-center font-label font-semibold text-[12px] text-on-surface uppercase tracking-[1px] hover:bg-surface-container-low transition-colors cursor-pointer">
+            </Link>
+            <Link
+              to="/cart"
+              onClick={closeCart}
+              className="w-full h-[48px] border border-on-surface flex items-center justify-center font-label font-semibold text-[12px] text-on-surface uppercase tracking-[1px] hover:bg-surface-container-low transition-colors"
+            >
               XEM GIỎ HÀNG
-            </button>
+            </Link>
           </div>
         </div>
       </div>
