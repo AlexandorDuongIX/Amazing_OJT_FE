@@ -12,6 +12,7 @@ import Payment from './pages/customer/Payment'
 import OrderSuccessPage from './pages/customer/OrderSucessPage'
 import OrderHistoryPage from './pages/customer/order-history'
 import { LoginPage, RegisterPage } from './pages/customer/AuthPages'
+import WishlistPage from './pages/customer/wishlist'
 
 import AdminLayout from './components/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
@@ -159,6 +160,15 @@ function App() {
             element={
               <CustomerLayout>
                 <OrderHistoryPage />
+              </CustomerLayout>
+            }
+          />
+
+          <Route
+            path="/wishlist"
+            element={
+              <CustomerLayout>
+                <WishlistPage />
               </CustomerLayout>
             }
           />
