@@ -11,6 +11,7 @@ import CartPage from './pages/customer/cart/CartPage'
 import OrderSuccessPage from './pages/customer/OrderSucessPage'
 import { LoginPage, RegisterPage } from './pages/customer/AuthPages'
 import Payment from './pages/customer/Payment'
+import OrderHistoryPage from './pages/customer/order-history/index'
 
 import AdminLayout from './components/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
@@ -147,6 +148,15 @@ function App() {
             element={
               <CustomerLayout>
                 <OrderSuccessPage />
+              </CustomerLayout>
+            }
+          />
+
+          <Route
+            path="/order-history"
+            element={
+              <CustomerLayout>
+                <OrderHistoryPage />
               </CustomerLayout>
             }
           />

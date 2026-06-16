@@ -65,8 +65,8 @@ export default function Navbar() {
       <header
         id="main-header"
         className={`fixed top-0 w-full z-50 transition-all duration-300 border-b border-outline-variant/30 ${scrolled
-            ? 'bg-background/95 shadow-sm'
-            : 'bg-background/90 backdrop-blur-md'
+          ? 'bg-background/95 shadow-sm'
+          : 'bg-background/90 backdrop-blur-md'
           }`}
       >
         <div className="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-base w-full max-w-[1440px] mx-auto h-[80px]">
@@ -88,8 +88,8 @@ export default function Navbar() {
                   key={link.label}
                   to={link.to}
                   className={`relative font-label text-[14px] font-semibold uppercase tracking-[0.1em] transition-colors duration-300 pb-1 ${active
-                      ? 'text-primary'
-                      : 'text-on-surface-variant hover:text-primary'
+                    ? 'text-primary'
+                    : 'text-on-surface-variant hover:text-primary'
                     }`}
                 >
                   {link.label}
@@ -146,7 +146,7 @@ export default function Navbar() {
                         <p className="font-body text-[12px] text-on-surface-variant/80 truncate">{user.email}</p>
                       </div>
                       <Link
-                        to="/orders"
+                        to="/order-history"
                         onClick={() => setUserMenuOpen(false)}
                         className="flex items-center gap-3 px-5 py-2.5 font-body text-[14px] text-primary hover:bg-[#f5f5f5] transition-colors"
                       >
