@@ -46,22 +46,20 @@ function RoleSwitcher() {
     <div className="fixed bottom-6 right-6 z-[9999] bg-background/90 border border-outline-variant/30 rounded-full shadow-2xl p-1.5 flex items-center gap-1 backdrop-blur-md">
       <Link
         to="/"
-        className={`px-4 py-2 rounded-full font-label text-[12px] font-bold uppercase tracking-wider transition-all duration-300 ${
-          !isAdmin
+        className={`px-4 py-2 rounded-full font-label text-[12px] font-bold uppercase tracking-wider transition-all duration-300 ${!isAdmin
             ? 'bg-primary text-on-primary shadow-md'
             : 'text-on-surface-variant hover:text-primary'
-        }`}
+          }`}
       >
         Khách hàng
       </Link>
 
       <Link
         to="/admin"
-        className={`px-4 py-2 rounded-full font-label text-[12px] font-bold uppercase tracking-wider transition-all duration-300 ${
-          isAdmin
+        className={`px-4 py-2 rounded-full font-label text-[12px] font-bold uppercase tracking-wider transition-all duration-300 ${isAdmin
             ? 'bg-primary text-on-primary shadow-md'
             : 'text-on-surface-variant hover:text-primary'
-        }`}
+          }`}
       >
         Admin
       </Link>
@@ -86,7 +84,14 @@ function App() {
               </CustomerLayout>
             }
           />
-
+          <Route
+            path="/order-success"
+            element={
+              <CustomerLayout>
+                <OrderSuccessPage />
+              </CustomerLayout>
+            }
+          />
           <Route
             path="/collections"
             element={
