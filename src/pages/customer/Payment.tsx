@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { create } from 'zustand';
+import type { Promotion } from '../data/promotionStorage';
 import { Info } from "lucide-react";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
@@ -21,6 +23,41 @@ interface AddressForm {
   addressDetail: string;
   phone: string;
 }
+
+interface PromotionState {
+  selectedVoucher: Promotion | null;
+  discountAmount: number;
+  applyVoucher: (voucher: Promotion, currentTotal: number) => void;
+  clearVoucher: () => void;
+}
+
+const usePromotionStore = create<PromotionState>((set) => ({
+  selectedVoucher: null,
+  discountAmount: 0,
+
+  applyVoucher: (voucher: Promotion, currentTotal: number) => {
+    let discount: number;
+    
+    // Tính toán số tiền được giảm dựa trên chuỗi định dạng (Ví dụ: '15%' hoặc '$50')
+    if (voucher.value.includes('%')) {
+      const percentage = parseFloat(voucher.value.replace('%', ''));
+      discount = (currentTotal * percentage) / 100;
+    } else if (voucher.value.includes('$')) {
+      discount = parseFloat(voucher.value.replace('$', ''));
+    } else {
+      discount = parseFloat(voucher.value) || 0;
+    }
+
+    // Đảm bảo số tiền giảm không vượt quá tổng giá trị đơn hàng
+    if (discount > currentTotal) {
+      discount = currentTotal;
+    }
+
+    set({ selectedVoucher: voucher, discountAmount: discount });
+  },
+
+  clearVoucher: () => set({ selectedVoucher: null, discountAmount: 0 }),
+}));
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
 const MOCK_SAVED_ADDRESS: SavedAddress = {
@@ -96,6 +133,7 @@ function ShippingOptions({
 }
 
 function OrderSummary() {
+  const { discountAmount } = usePromotionStore();
   return (
     <div className="bg-gray-50 border border-gray-200 p-5 h-fit sticky top-24">
       {/* Header */}
@@ -110,6 +148,12 @@ function OrderSummary() {
           <span className="text-gray-500">Tạm tính</span>
           <span>{ORDER_SUMMARY.subtotal}</span>
         </div>
+        {discountAmount > 0 && (
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-500">Giảm giá</span>
+            <span>-{discountAmount.toLocaleString('vi-VN')} VND</span>
+          </div>
+        )}
         <div className="flex justify-between text-sm">
           <span className="text-gray-500">Phí vận chuyển</span>
           <span>{ORDER_SUMMARY.shipping}</span>

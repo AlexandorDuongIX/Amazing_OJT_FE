@@ -1,119 +1,133 @@
-import { Link, useLocation } from 'react-router-dom'
+import React, { useState } from 'react';
+import { Layout, Menu, Typography, Button, Space, Avatar } from 'antd';
+import {
+  DashboardOutlined,
+  InboxOutlined,
+  UserOutlined,
+  NotificationOutlined,
+  PercentageOutlined,
+  MenuUnfoldOutlined,
+  MenuFoldOutlined,
+  LogoutOutlined,
+  ShoppingOutlined,
+} from '@ant-design/icons';
+import { Link, useLocation } from 'react-router-dom';
 
-/* ============================================================
-   AdminLayout — AMAZING Luxury Admin Shell
-   ============================================================
-   - Fixed dark sidebar (w-72) with brand + navigation
-   - Active link highlight with gold left-border
-   - Profile avatar at bottom
-   - Top-level main content area with offset
-   ============================================================ */
+const { Header, Sider, Content } = Layout;
+const { Title, Text } = Typography;
 
+// 1. Định nghĩa interface cho các liên kết điều hướng
 interface SidebarLink {
-  label: string
-  href: string
-  icon: string
+  key: string;
+  label: string;
+  href: string;
+  icon: React.ReactNode;
 }
 
-const sidebarLinks: SidebarLink[] = [
-  { label: 'Dashboard', href: '/admin', icon: 'dashboard' },
-  { label: 'Inventory', href: '/admin/inventory', icon: 'inventory_2' },
-  { label: 'Customers', href: '/admin/customers', icon: 'group' },
-  { label: 'Orders', href: '/admin/orders', icon: 'shopping_bag' },
-  { label: 'Marketing', href: '/admin/marketing', icon: 'campaign' },
-  { label: 'Reports', href: '/admin/reports', icon: 'analytics' },
-  { label: 'Quản lý Blog', href: '/admin/blogs', icon: 'article' },
-  { label: 'Staff', href: '/admin/staff', icon: 'badge' },
-]
+interface AdminLayoutProps {
+  children: React.ReactNode;
+}
 
-export default function AdminLayout({ children }: { children?: React.ReactNode }) {
-  const location = useLocation()
+const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
+  const [collapsed, setCollapsed] = useState(false);
+  const location = useLocation();
+
+  // 2. MẢNG ĐIỀU HƯỚNG SIDEBAR - Đã cập nhật thêm tính năng Promotions
+  const sidebarLinks: SidebarLink[] = [
+    { 
+      key: '1', 
+      label: 'Dashboard', 
+      href: '/admin', 
+      icon: <DashboardOutlined /> 
+    },
+    { 
+      key: '2', 
+      label: 'Inventory', 
+      href: '/admin/inventory', 
+      icon: <InboxOutlined /> 
+    },
+    { 
+      key: '3', 
+      label: 'Customers', 
+      href: '/admin/customers', 
+      icon: <UserOutlined /> 
+    },
+    { 
+      key: '4', 
+      label: 'Orders', 
+      href: '/admin/orders', 
+      icon: <ShoppingOutlined /> 
+    },
+    { 
+      key: '5', 
+      label: 'Marketing', 
+      href: '/admin/marketing', 
+      icon: <NotificationOutlined /> 
+    },
+    // THÊM ĐƯỜNG DẪN PROMOTIONS TẠI ĐÂY:
+    { 
+      key: '6', 
+      label: 'Promotions', 
+      href: '/admin/promotions', 
+      icon: <PercentageOutlined style={{ color: '#ff4d4f' }} /> // Tạo điểm nhấn màu đỏ cho voucher
+    },
+  ];
+
+  // Tìm key hiện tại dựa vào đường dẫn URL (Router) để highlight menu
+  const currentMenu = sidebarLinks.find(link => location.pathname === link.href) || sidebarLinks[0];
 
   return (
-    <div className="min-h-screen bg-surface text-on-surface flex">
-      {/* ---- Sidebar ---- */}
-      <nav className="fixed left-0 top-0 h-full w-72 flex flex-col py-8 bg-tertiary-container border-r border-outline-variant/20 z-50">
-        {/* Brand */}
-        <div className="px-8 mb-12">
-          <h1 className="font-headline font-bold text-[18px] tracking-tighter text-on-tertiary">
-            AMAZING
-          </h1>
-          <p className="font-label uppercase tracking-widest text-caption text-on-tertiary/60">
-            ADMIN
-          </p>
+    <Layout style={{ minHeight: '100vh' }}>
+      {/* Thanh Menu bên trái (Sidebar) */}
+      <Sider trigger={null} collapsible collapsed={collapsed} theme="light" style={{ boxShadow: '2px 0 8px 0 rgba(29,35,41,.05)' }}>
+        <div style={{ height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+          <Title level={4} style={{ margin: 0, color: '#1890ff' }}>
+            {collapsed ? 'OJT' : 'AMAZING OJT'}
+          </Title>
         </div>
+        
+        <Menu
+          theme="light"
+          mode="inline"
+          selectedKeys={[currentMenu.key]}
+          items={sidebarLinks.map((link) => ({
+            key: link.key,
+            icon: link.icon,
+            label: <Link to={link.href}>{link.label}</Link>,
+          }))}
+        />
+      </Sider>
 
-        {/* Navigation Links */}
-        <div className="flex-1 overflow-y-auto px-4 space-y-1">
-          {sidebarLinks.map((link) => {
-            const isActive = location.pathname === link.href
-            return (
-              <Link
-                key={link.label}
-                to={link.href}
-                className={`flex items-center gap-4 pl-4 py-3 transition-all duration-300 ${isActive
-                    ? 'text-secondary border-l-2 border-secondary translate-x-1'
-                    : 'text-on-tertiary-container opacity-70 hover:opacity-100 hover:text-secondary hover:bg-on-tertiary-fixed/10'
-                  }`}
-              >
-                <span className="material-symbols-outlined">{link.icon}</span>
-                <span className="font-label uppercase tracking-widest text-label-md">
-                  {link.label}
-                </span>
-              </Link>
-            )
-          })}
-        </div>
+      {/* Phần nội dung bên phải */}
+      <Layout>
+        {/* Thanh Header phía trên */}
+        <Header style={{ background: '#fff', padding: '0 24px 0 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Button
+            type="text"
+            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+            onClick={() => setCollapsed(!collapsed)}
+            style={{ fontSize: '16px', width: 64, height: 64 }}
+          />
+          
+          {/* Thông tin Admin góc phải */}
+          <Space size="large">
+            <Space>
+              <Avatar src="https://api.dicebear.com/7.x/miniavs/svg?seed=1" />
+              <Text strong>Admin Mode</Text>
+            </Space>
+            <Button type="text" danger icon={<LogoutOutlined />}>
+              Logout
+            </Button>
+          </Space>
+        </Header>
 
-        {/* Profile Footer */}
-        <div className="px-8 mt-auto pt-8 border-t border-on-tertiary-fixed-variant flex items-center gap-4">
-          <div className="w-10 h-10 bg-surface-container-highest flex items-center justify-center text-on-surface font-bold text-label-md">
-            A
-          </div>
-          <div>
-            <p className="font-headline font-semibold text-body-md text-on-tertiary">
-              Alexander V.
-            </p>
-            <p className="font-body text-caption text-on-tertiary/40">Super Admin</p>
-          </div>
-        </div>
-      </nav>
-
-      {/* ---- Main Content Area ---- */}
-      <main className="ml-72 min-h-screen flex flex-col flex-1">
-        <div className="p-10 max-w-[1440px] mx-auto w-full flex-1">
+        {/* Nội dung các trang Admin quản lý (Render Component con tại đây) */}
+        <Content style={{ margin: '24px 16px', padding: '24px', background: '#fff', minHeight: 280, borderRadius: '8px' }}>
           {children}
-        </div>
+        </Content>
+      </Layout>
+    </Layout>
+  );
+};
 
-        {/* Footer */}
-        <div className="ml-0 px-10 max-w-[1440px] mx-auto w-full">
-          <div className="flex justify-between items-center py-8 border-t border-outline-variant">
-            <p className="font-body text-caption uppercase tracking-wider text-on-surface-variant/60">
-              © 2026 AMAZING FASHION. ALL RIGHTS RESERVED.
-            </p>
-            <div className="flex gap-8">
-              <a
-                href="#"
-                className="font-body text-caption uppercase tracking-wider text-on-surface-variant hover:text-primary transition-colors"
-              >
-                Privacy Policy
-              </a>
-              <a
-                href="#"
-                className="font-body text-caption uppercase tracking-wider text-on-surface-variant hover:text-primary transition-colors"
-              >
-                Terms of Service
-              </a>
-              <a
-                href="#"
-                className="font-body text-caption uppercase tracking-wider text-on-surface-variant hover:text-primary transition-colors"
-              >
-                Support
-              </a>
-            </div>
-          </div>
-        </div>
-      </main>
-    </div>
-  )
-}
+export default AdminLayout;
