@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { useState } from 'react'
 
 /* ============================================================
@@ -142,31 +143,61 @@ function RevenueChart() {
 
 /* ---------- Quick Actions Panel ---------- */
 function QuickActions() {
+  type QuickAction = {
+    icon: string
+    label: string
+    href?: string
+  }
+
+  const actions: QuickAction[] = [
+    { icon: 'confirmation_number', label: 'Tạo Voucher mới' },
+    { icon: 'edit_note', label: 'Quản lý nội dung', href: '/admin/content' },
+    { icon: 'add_business', label: 'Thêm sản phẩm' },
+  ]
+
   return (
     <div className="bg-tertiary-container text-on-tertiary p-10 flex flex-col justify-between">
       <div>
         <h3 className="text-headline-md font-bold mb-8 text-on-tertiary">Thao tác nhanh</h3>
         <div className="space-y-4">
-          {[
-            { icon: 'confirmation_number', label: 'Tạo Voucher mới' },
-            { icon: 'edit_note', label: 'Đăng bài Blog' },
-            { icon: 'add_business', label: 'Thêm sản phẩm' },
-          ].map((action) => (
-            <button
-              key={action.label}
-              className="w-full flex items-center justify-between p-4 border border-on-tertiary/20 hover:border-secondary hover:text-secondary transition-all group cursor-pointer"
-            >
-              <div className="flex items-center gap-4">
-                <span className="material-symbols-outlined">{action.icon}</span>
-                <span className="font-body text-label-md uppercase tracking-widest">
-                  {action.label}
+          {actions.map((action) => {
+            if (action.href) {
+              return (
+                <Link
+                  key={action.label}
+                  to={action.href}
+                  className="w-full flex items-center justify-between p-4 border border-on-tertiary/20 hover:border-secondary hover:text-secondary transition-all group cursor-pointer"
+                >
+                  <div className="flex items-center gap-4">
+                    <span className="material-symbols-outlined">{action.icon}</span>
+                    <span className="font-body text-label-md uppercase tracking-widest">
+                      {action.label}
+                    </span>
+                  </div>
+                  <span className="material-symbols-outlined opacity-0 group-hover:opacity-100 transition-opacity">
+                    chevron_right
+                  </span>
+                </Link>
+              )
+            }
+
+            return (
+              <button
+                key={action.label}
+                className="w-full flex items-center justify-between p-4 border border-on-tertiary/20 hover:border-secondary hover:text-secondary transition-all group cursor-pointer"
+              >
+                <div className="flex items-center gap-4">
+                  <span className="material-symbols-outlined">{action.icon}</span>
+                  <span className="font-body text-label-md uppercase tracking-widest">
+                    {action.label}
+                  </span>
+                </div>
+                <span className="material-symbols-outlined opacity-0 group-hover:opacity-100 transition-opacity">
+                  chevron_right
                 </span>
-              </div>
-              <span className="material-symbols-outlined opacity-0 group-hover:opacity-100 transition-opacity">
-                chevron_right
-              </span>
-            </button>
-          ))}
+              </button>
+            )
+          })}
         </div>
       </div>
 

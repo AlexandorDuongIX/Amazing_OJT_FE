@@ -16,6 +16,7 @@ import WishlistPage from './pages/customer/wishlist'
 
 import AdminLayout from './components/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
+import ContentManagementPage from './pages/admin/ContentManagementPage'
 
 /* ── Scroll to top on every route change ── */
 function ScrollToTop() {
@@ -185,6 +186,15 @@ function App() {
             element={
               <AdminLayout>
                 <AdminDashboard />
+              </AdminLayout>
+            }
+          />
+
+          <Route
+            path="/admin/content"
+            element={
+              <AdminLayout>
+                <ContentManagementPage />
               </AdminLayout>
             }
           />
