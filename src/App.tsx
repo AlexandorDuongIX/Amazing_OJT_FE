@@ -7,7 +7,7 @@ import HomePage from './pages/customer/HomePage'
 
 import ProductListPage from './pages/customer/ProductListPage'
 import ProductDetailPage from './pages/customer/ProductDetailPage'
-import CartPage from './pages/customer/CartPage'
+import CartPage from './pages/customer/cart/CartPage'
 import OrderSuccessPage from './pages/customer/OrderSucessPage'
 import { LoginPage, RegisterPage } from './pages/customer/AuthPages'
 import Payment from './pages/customer/Payment'
