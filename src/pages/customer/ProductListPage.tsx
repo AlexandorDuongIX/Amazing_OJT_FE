@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import axios from 'axios'
+import { useCartStore } from '../../store/cartStore'
+import type { Product } from '../../types/product'
 
 /* ============================================================
    ProductListPage — AMAZING Clothing Shop (Customer Page)
@@ -10,25 +12,6 @@ import axios from 'axios'
    2. Product Grid (2 cols mobile / 4 cols desktop)
    3. Load More Button
    ============================================================ */
-
-/* ---------- Product Data (from API) ---------- */
-interface Product {
-  id: number
-  name: string
-  description: string
-  price: number
-  discountPrice: number
-  category: string
-  sku: string
-  brand: string
-  color: string
-  size: string
-  material: string
-  imageUrl: string
-  rating: number
-  reviewCount: number
-  isActive: boolean
-}
 
 /* ---------- Helpers ---------- */
 const formatVND = (amount: number) =>
@@ -71,9 +54,10 @@ function FilterSelect({ label, options, value, onChange }: FilterSelectProps) {
 /* ---------- Product Card ---------- */
 interface ProductCardProps {
   product: Product
+  onAddToCart: () => void
 }
 
-function ProductCard({ product }: ProductCardProps) {
+function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const navigate = useNavigate()
   const [wished, setWished] = useState(false)
   const [imgError, setImgError] = useState(false)
@@ -95,7 +79,7 @@ function ProductCard({ product }: ProductCardProps) {
       <div className="relative aspect-[3/4] overflow-hidden mb-4 bg-surface-container-low">
         {/* Product Image */}
         <img
-          src={imgError ? 'https://via.placeholder.com/400x533?text=No+Image' : product.imageUrl}
+          src={imgError ? 'https://via.placeholder.com/400x533?text=No+Image' : (product.images?.[0] ?? '')}
           alt={product.name}
           onError={() => setImgError(true)}
           className="object-cover w-full h-full absolute inset-0 transition-transform duration-500 ease-in-out group-hover:scale-105"
@@ -111,9 +95,8 @@ function ProductCard({ product }: ProductCardProps) {
           aria-label="Thêm vào yêu thích"
         >
           <span
-            className={`material-symbols-outlined text-[20px] transition-colors duration-200 ${
-              wished ? 'text-error' : 'text-on-surface hover:text-secondary'
-            }`}
+            className={`material-symbols-outlined text-[20px] transition-colors duration-200 ${wished ? 'text-error' : 'text-on-surface hover:text-secondary'
+              }`}
             style={wished ? { fontVariationSettings: "'FILL' 1" } : {}}
           >
             favorite
@@ -122,7 +105,10 @@ function ProductCard({ product }: ProductCardProps) {
 
         {/* Add to Cart — Slides up on hover */}
         <div className="absolute bottom-0 left-0 w-full p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out">
-          <button className="w-full py-3 bg-primary text-on-primary font-label text-[14px] font-semibold uppercase tracking-wider hover:bg-secondary transition-colors duration-200">
+          <button
+            onClick={(e) => { e.stopPropagation(); onAddToCart() }}
+            className="w-full py-3 bg-primary text-on-primary font-label text-[14px] font-semibold uppercase tracking-wider hover:bg-secondary transition-colors duration-200"
+          >
             Thêm Vào Giỏ
           </button>
         </div>
@@ -175,6 +161,7 @@ const CATEGORY_TITLES: Record<string, string> = {
 export default function ProductListPage() {
   const { category } = useParams<{ category?: string }>()
   const pageTitle = category ? (CATEGORY_TITLES[category] ?? 'Bộ Sưu Tập') : 'Tất Cả Sản Phẩm'
+  const { addItem, showToast } = useCartStore()
 
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
@@ -194,7 +181,7 @@ export default function ProductListPage() {
     setLoading(true)
     setError(null)
     axios
-      .get<Product[]>(`${apiBase}/product`)
+      .get<Product[]>(`${apiBase}/data`)
       .then((res) => {
         setProducts(res.data)
       })
@@ -219,22 +206,22 @@ export default function ProductListPage() {
   }, [products])
 
   const colorOptions = useMemo(() => {
-    const colors = [...new Set(products.map((p) => p.color))]
+    const colors = [...new Set(products.flatMap((p) => p.colors?.map((c) => c.name) ?? []))]
     return colors.map((c) => ({ value: c, label: c }))
   }, [products])
 
   const sizeOptions = useMemo(() => {
-    const sizes = [...new Set(products.map((p) => p.size))]
+    const sizes = [...new Set(products.flatMap((p) => p.sizes ?? []))]
     return sizes.map((s) => ({ value: s, label: s }))
   }, [products])
 
   /* ── Filter + Sort logic ── */
   const filteredProducts = useMemo(() => {
-    let list = products.filter((p) => p.isActive)
+    let list = [...products]
 
     if (filterCategory) list = list.filter((p) => p.category === filterCategory)
-    if (filterColor) list = list.filter((p) => p.color === filterColor)
-    if (filterSize) list = list.filter((p) => p.size === filterSize)
+    if (filterColor) list = list.filter((p) => p.colors?.some((c) => c.name === filterColor))
+    if (filterSize) list = list.filter((p) => p.sizes?.includes(filterSize))
 
     if (priceRange === 'duoi-300k') list = list.filter((p) => (p.discountPrice || p.price) < 300000)
     else if (priceRange === '300k-600k')
@@ -328,8 +315,23 @@ export default function ProductListPage() {
           {loading
             ? Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)
             : visibleProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
+              <ProductCard
+                key={product.id}
+                product={product}
+                onAddToCart={() => {
+                  addItem({
+                    id: product.id,
+                    name: product.name,
+                    price: product.discountPrice || product.price,
+                    imageUrl: product.images?.[0] ?? '',
+                    size: product.sizes?.[0] ?? '',
+                    color: product.colors?.[0]?.value ?? '',
+                    quantity: 1,
+                  })
+                  showToast(product.name, product.images?.[0] ?? '', product.discountPrice || product.price)
+                }}
+              />
+            ))}
         </div>
       )}
 

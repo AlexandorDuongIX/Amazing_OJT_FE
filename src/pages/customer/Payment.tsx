@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { create } from 'zustand';
 import type { Promotion } from '../data/promotionStorage';
+import { useNavigate } from "react-router-dom";
 import { Info } from "lucide-react";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
@@ -391,6 +392,7 @@ function PaymentMethod() {
 type AddressState = "form" | "saved";
 
 export default function Payment() {
+  const navigate = useNavigate();
   const [shippingOption, setShippingOption] = useState<"standard" | "express">("standard");
   const [addressState, setAddressState] = useState<AddressState>("form");
 
@@ -434,7 +436,7 @@ export default function Payment() {
                   address={MOCK_SAVED_ADDRESS}
                   onEdit={handleEdit}
                   onRegisterNew={handleEdit}
-                  onContinue={() => alert("Tiếp tục thanh toán!")}
+                  onContinue={() => navigate("/order-success")}
                 />
               ) : (
                 <NewAddressForm onConfirm={handleFormConfirm} />

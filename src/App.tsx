@@ -1,47 +1,26 @@
 import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom'
+
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import HomePage from './pages/customer/HomePage'
+
 import ProductListPage from './pages/customer/ProductListPage'
+import ProductDetailPage from './pages/customer/ProductDetailPage'
+import CartPage from './pages/customer/cart/CartPage'
+import Payment from './pages/customer/Payment'
+import OrderSuccessPage from './pages/customer/OrderSucessPage'
+import OrderHistoryPage from './pages/customer/order-history'
+import { LoginPage, RegisterPage } from './pages/customer/AuthPages'
+import WishlistPage from './pages/customer/wishlist'
+
 import AdminLayout from './components/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
-import { LoginPage, RegisterPage } from './pages/customer/AuthPages'
-import Payment from './pages/customer/Payment'
-import ProductDetailPage from './pages/customer/ProductDetailPage'
 import BlogManagement from './pages/admin/BlogManagement'
 import BlogListPage from './pages/customer/BlogListPage'
 import BlogDetailPage from './pages/customer/BlogDetailPage'
 import ProductManagementPage from './features/admin/products/ProductManagementPage'
 import ProductFormPage from './features/admin/products/ProductFormPage'
-
-function CustomerLayout() {
-  return (
-    <>
-      <Navbar />
-      <main className="pt-[80px]">
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/collections" element={<ProductListPage />} />
-          <Route path="/collections/:category" element={<ProductListPage />} />
-          <Route
-            path="/blogs"
-            element={<BlogListPage />}
-          />
-          <Route
-            path="/blog/:id"
-            element={<BlogDetailPage />}
-          />
-          <Route path="/product/:productId" element={<ProductDetailPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="*" element={<HomePage />} />
-        </Routes>
-      </main>
-      <Footer />
-    </>
-  )
-}
 
 /* ── Scroll to top on every route change ── */
 function ScrollToTop() {
@@ -50,6 +29,18 @@ function ScrollToTop() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [pathname])
   return null
+}
+
+function CustomerLayout({ children }: { children?: React.ReactNode }) {
+  return (
+    <>
+      <Navbar />
+      <main className="pt-[80px]">
+        {children ?? <HomePage />}
+      </main>
+      <Footer />
+    </>
+  )
 }
 
 function RoleSwitcher() {
@@ -61,17 +52,18 @@ function RoleSwitcher() {
       <Link
         to="/"
         className={`px-4 py-2 rounded-full font-label text-[12px] font-bold uppercase tracking-wider transition-all duration-300 ${!isAdmin
-          ? 'bg-primary text-on-primary shadow-md'
-          : 'text-on-surface-variant hover:text-primary'
+            ? 'bg-primary text-on-primary shadow-md'
+            : 'text-on-surface-variant hover:text-primary'
           }`}
       >
         Khách hàng
       </Link>
+
       <Link
         to="/admin"
         className={`px-4 py-2 rounded-full font-label text-[12px] font-bold uppercase tracking-wider transition-all duration-300 ${isAdmin
-          ? 'bg-primary text-on-primary shadow-md'
-          : 'text-on-surface-variant hover:text-primary'
+            ? 'bg-primary text-on-primary shadow-md'
+            : 'text-on-surface-variant hover:text-primary'
           }`}
       >
         Admin
@@ -86,10 +78,131 @@ function App() {
       <ScrollToTop />
       <div className="bg-background text-on-background font-body antialiased selection:bg-secondary-container selection:text-on-secondary-container min-h-screen">
         <Routes>
+
           {/* Customer Routes */}
-          <Route path="/*" element={<CustomerLayout />} />
+
+          <Route
+            path="/"
+            element={
+              <CustomerLayout>
+                <HomePage />
+              </CustomerLayout>
+            }
+          />
+          <Route
+            path="/order-success"
+            element={
+              <CustomerLayout>
+                <OrderSuccessPage />
+              </CustomerLayout>
+            }
+          />
+          <Route
+            path="/collections"
+            element={
+              <CustomerLayout>
+                <ProductListPage />
+              </CustomerLayout>
+            }
+          />
+
+          <Route
+            path="/collections/:category"
+            element={
+              <CustomerLayout>
+                <ProductListPage />
+              </CustomerLayout>
+            }
+          />
+
+          <Route
+            path="/blogs"
+            element={
+              <CustomerLayout>
+                <BlogListPage />
+              </CustomerLayout>
+            }
+          />
+
+          <Route
+            path="/blog/:id"
+            element={
+              <CustomerLayout>
+                <BlogDetailPage />
+              </CustomerLayout>
+            }
+          />
+
+          <Route
+            path="/product/:productId"
+            element={
+              <CustomerLayout>
+                <ProductDetailPage />
+              </CustomerLayout>
+            }
+          />
+
+          <Route
+            path="/login"
+            element={
+              <CustomerLayout>
+                <LoginPage />
+              </CustomerLayout>
+            }
+          />
+
+          <Route
+            path="/register"
+            element={
+              <CustomerLayout>
+                <RegisterPage />
+              </CustomerLayout>
+            }
+          />
+
+          <Route
+            path="/cart"
+            element={
+              <CustomerLayout>
+                <CartPage />
+              </CustomerLayout>
+            }
+          />
+
+          <Route
+            path="/payment"
+            element={<Payment />}
+          />
+
+          <Route
+            path="/success"
+            element={
+              <CustomerLayout>
+                <OrderSuccessPage />
+              </CustomerLayout>
+            }
+          />
+
+          <Route
+            path="/orders"
+            element={
+              <CustomerLayout>
+                <OrderHistoryPage />
+              </CustomerLayout>
+            }
+          />
+
+          <Route
+            path="/wishlist"
+            element={
+              <CustomerLayout>
+                <WishlistPage />
+              </CustomerLayout>
+            }
+          />
 
           {/* Admin Routes */}
+
           <Route
             path="/admin"
             element={
@@ -132,13 +245,17 @@ function App() {
           />
 
           {/* Catch-all redirect to Home */}
-          <Route path="*" element={<CustomerLayout />} />
 
-          {/* Payment Route */}
-          <Route path="/payment" element={<Payment />} />
+          <Route
+            path="*"
+            element={
+              <CustomerLayout>
+                <HomePage />
+              </CustomerLayout>
+            }
+          />
         </Routes>
 
-        {/* Floating Switcher for Easy Testing */}
         <RoleSwitcher />
       </div>
     </BrowserRouter>

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Promotion } from '../data/promotionStorage';
+import type { Promotion } from '../pages/data/promotionStorage';
 
 interface PromotionState {
   selectedVoucher: Promotion | null;
