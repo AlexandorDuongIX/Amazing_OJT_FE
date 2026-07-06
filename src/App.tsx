@@ -12,6 +12,8 @@ import ProductDetailPage from './pages/customer/ProductDetailPage'
 import BlogManagement from './pages/admin/BlogManagement'
 import BlogListPage from './pages/customer/BlogListPage'
 import BlogDetailPage from './pages/customer/BlogDetailPage'
+import ProductManagementPage from './features/admin/products/ProductManagementPage'
+import ProductFormPage from './features/admin/products/ProductFormPage'
 
 function CustomerLayout() {
   return (
@@ -55,7 +57,7 @@ function RoleSwitcher() {
   const isAdmin = location.pathname.startsWith('/admin')
 
   return (
-    <div className="fixed bottom-6 right-6 z-[9999] bg-background/90 border border-outline-variant/30 rounded-full shadow-2xl p-1.5 flex items-center gap-1 backdrop-blur-md">
+    <div role="group" aria-label="Role switcher" className="fixed bottom-6 right-6 z-[9999] hidden items-center gap-1 rounded-full border border-outline-variant/30 bg-background/90 p-1.5 shadow-2xl backdrop-blur-md sm:flex">
       <Link
         to="/"
         className={`px-4 py-2 rounded-full font-label text-[12px] font-bold uppercase tracking-wider transition-all duration-300 ${!isAdmin
@@ -101,6 +103,30 @@ function App() {
             element={
               <AdminLayout>
                 <BlogManagement />
+              </AdminLayout>
+            }
+          />
+          <Route
+            path="/admin/inventory"
+            element={
+              <AdminLayout>
+                <ProductManagementPage />
+              </AdminLayout>
+            }
+          />
+          <Route
+            path="/admin/inventory/new"
+            element={
+              <AdminLayout>
+                <ProductFormPage />
+              </AdminLayout>
+            }
+          />
+          <Route
+            path="/admin/inventory/:productId/edit"
+            element={
+              <AdminLayout>
+                <ProductFormPage />
               </AdminLayout>
             }
           />
