@@ -35,7 +35,6 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
-
   const { items, toggleCart } = useCartStore()
   const totalItems = items.reduce((sum, i) => sum + i.quantity, 0)
 
@@ -119,11 +118,9 @@ export default function Navbar() {
             <button className="text-primary hover:text-secondary-fixed-dim scale-95 active:scale-100 transition-transform cursor-pointer" aria-label="Tìm kiếm">
               <span className="material-symbols-outlined text-[24px]">search</span>
             </button>
-            <button className="text-primary hover:text-secondary-fixed-dim scale-95 active:scale-100 transition-transform cursor-pointer hidden md:block" aria-label="Yêu thích">
+            <Link to="/wishlist" className="text-primary hover:text-secondary-fixed-dim scale-95 active:scale-100 transition-transform cursor-pointer hidden md:block" aria-label="Yêu thích">
               <span className="material-symbols-outlined text-[24px]">favorite</span>
-            </button>
-
-            {/* User Account Dropdown */}
+            </Link>
             <div className="relative hidden md:block">
               <button
                 className="text-primary hover:text-secondary-fixed-dim scale-95 active:scale-100 transition-transform cursor-pointer block"
@@ -147,6 +144,14 @@ export default function Navbar() {
                         <p className="font-body text-[14px] font-semibold text-primary truncate mt-0.5">{user.name}</p>
                         <p className="font-body text-[12px] text-on-surface-variant/80 truncate">{user.email}</p>
                       </div>
+                      <Link
+                        to="/orders"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-3 px-5 py-2.5 font-body text-[14px] text-primary hover:bg-[#f5f5f5] transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">history</span>
+                        <span>Lịch sử đơn hàng</span>
+                      </Link>
                       <button
                         onClick={() => {
                           logout()
@@ -181,13 +186,7 @@ export default function Navbar() {
                 </div>
               )}
             </div>
-
-            {/* Cart Button */}
-            <button
-              onClick={toggleCart}
-              className="text-primary hover:text-secondary-fixed-dim scale-95 active:scale-100 transition-transform cursor-pointer relative"
-              aria-label="Giỏ hàng"
-            >
+            <button onClick={toggleCart} className="text-primary hover:text-secondary-fixed-dim scale-95 active:scale-100 transition-transform cursor-pointer relative" aria-label="Giỏ hàng">
               <span className="material-symbols-outlined text-[24px]">shopping_bag</span>
               {totalItems > 0 && (
                 <span className="absolute -top-1 -right-1 bg-tertiary text-on-tertiary text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
@@ -246,9 +245,14 @@ export default function Navbar() {
               })}
             </div>
             <div className="mt-auto flex items-center gap-6 pt-8 border-t border-outline-variant/30">
-              <button className="text-on-surface-variant hover:text-primary transition-colors cursor-pointer" aria-label="Yêu thích">
+              <Link
+                to="/wishlist"
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-on-surface-variant hover:text-primary transition-colors cursor-pointer"
+                aria-label="Yêu thích"
+              >
                 <span className="material-symbols-outlined">favorite</span>
-              </button>
+              </Link>
               {user ? (
                 <button
                   onClick={() => {
