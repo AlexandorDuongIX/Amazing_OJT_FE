@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Info } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { Info, Ticket, ChevronRight } from "lucide-react";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Button from "../../components/Button";
@@ -15,12 +15,16 @@ interface SavedAddress {
   phone: string;
 }
 
-interface AddressForm {
+interface AddressFormInput {
   fullName: string;
   province: string;
   ward: string;
   addressDetail: string;
   phone: string;
+}
+
+interface NewAddressFormProps {
+  onConfirm: () => void;
 }
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
@@ -62,10 +66,8 @@ function ShippingOptions({
             : "border-gray-200 bg-white hover:border-gray-400"
         }`}
       >
-        <p className="text-sm font-medium">Giao đến địa chỉ</p>
-        <p className="text-xs text-gray-500 mt-0.5">
-          Phí vận chuyển: 50.000 VND
-        </p>
+        <p className="text-base font-body">Giao đến địa chỉ</p>
+        <p className="text-base font-body">Phí vận chuyển: 50.000 VND</p>
       </button>
 
       {/* Express */}
@@ -79,14 +81,12 @@ function ShippingOptions({
         }`}
       >
         {/* Content */}
-        <p className="text-sm font-medium">Giao hỏa tốc (2h)</p>
-        <p className="text-xs text-gray-500 mt-0.2">
-          Phí vận chuyển: 100.000 VND
-        </p>
+        <p className="text-base font-body">Giao hỏa tốc (2h)</p>
+        <p className="text-base font-body">Phí vận chuyển: 100.000 VND</p>
 
         {/* Info icon (top-right) */}
         <span
-          className="absolute top-1/2 -translate-y-1/2 right-3 text-gray-400 hover:text-gray-600 transition-colors"
+          className="absolute top-1/2 -translate-y-1/2 right-5 text-gray-400 hover:text-gray-600 transition-colors"
           title="Giao hàng trong vòng 2 giờ (áp dụng nội thành, có thể thay đổi theo điều kiện thực tế)"
         >
           <Info size={20} />
@@ -98,170 +98,208 @@ function ShippingOptions({
 
 function OrderSummary() {
   return (
-    <div className="bg-gray-50 border border-gray-200 p-5 h-fit sticky top-24">
+    <div className="bg-[#D9D9D9]/50 text-black border-[#757575] p-5 h-fit">
       {/* Header */}
-      <div className="flex justify-between items-center pb-4 border-b border-gray-200">
-        <span className="text-sm font-medium tracking-wide">Tổng đơn hàng</span>
-        <span className="text-sm font-medium">{ORDER_SUMMARY.itemCount} Sản Phẩm</span>
+      <div className="flex justify-between items-center pb-6 border-b border-[#757575]">
+        <span className="text-base font-bold tracking-wide">Tổng đơn hàng</span>
+        <span className="text-base font-bold">
+          {ORDER_SUMMARY.itemCount} Sản Phẩm
+        </span>
       </div>
 
       {/* Lines */}
-      <div className="py-4 space-y-3 border-b border-gray-200">
-        <div className="flex justify-between text-sm">
-          <span className="text-gray-500">Tạm tính</span>
+      <div className="py-6 space-y-5 border-b border-[#757575]">
+        <div className="flex justify-between text-base">
+          <span>Tạm tính</span>
           <span>{ORDER_SUMMARY.subtotal}</span>
         </div>
-        <div className="flex justify-between text-sm">
-          <span className="text-gray-500">Phí vận chuyển</span>
+        <div className="flex justify-between text-base">
+          <span>Phí vận chuyển</span>
           <span>{ORDER_SUMMARY.shipping}</span>
         </div>
       </div>
 
       {/* Total */}
-      <div className="pt-4 pb-3 border-b border-gray-200">
+      <div className="pt-6">
         <div className="flex justify-between items-center">
-          <span className="text-sm font-semibold">Tổng đơn đặt hàng</span>
-          <span className="text-sm font-semibold">{ORDER_SUMMARY.total}</span>
+          <span className="text-base font-bold">Tổng đơn đặt hàng</span>
+          <span className="text-base font-bold">{ORDER_SUMMARY.total}</span>
         </div>
-        <p className="text-xs text-gray-400 mt-1 text-right">
-          Đã bao gồm thuế giá trị gia tăng {ORDER_SUMMARY.vatIncluded}
-        </p>
-      </div>
 
-      {/* Voucher */}
+        <div className="mt-5 pt-5 border-t border-[#757575]">
+          <div className="flex justify-between items-start text-sm gap-4">
+            <span className="flex-1 text-left">
+              Đã bao gồm thuế giá trị gia tăng
+            </span>
+            <span className="whitespace-nowrap">
+              {ORDER_SUMMARY.vatIncluded}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function VoucherBox() {
+  return (
+    <div className="mt-4 border-y border-[#757575] py-4 px-4">
       <button
         type="button"
-        className="w-full flex items-center justify-between pt-4 text-sm text-gray-600 hover:text-black transition-colors group"
+        className="w-full flex items-center justify-between text-sm text-black group"
       >
         <div className="flex items-center gap-2">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <rect x="2" y="7" width="20" height="10" rx="1" />
-            <path d="M12 7v10M2 12h3m14 0h3" strokeLinecap="round" />
-          </svg>
+          <Ticket size={16} strokeWidth={1.5} />
           <span>Phiếu giảm giá (1)</span>
         </div>
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
+
+        <ChevronRight
+          size={16}
+          strokeWidth={2}
           className="group-hover:translate-x-0.5 transition-transform"
-        >
-          <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+        />
       </button>
     </div>
   );
 }
 
 // ─── Address Form (State 1) ───────────────────────────────────────────────────
-function NewAddressForm({ onConfirm }: { onConfirm: () => void }) {
-  const [form, setForm] = useState<AddressForm>({
-    fullName: "",
-    province: "",
-    ward: "",
-    addressDetail: "",
-    phone: "",
+function NewAddressForm({ onConfirm }: NewAddressFormProps) {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isValid },
+  } = useForm<AddressFormInput>({
+    mode: "onChange",
   });
 
-  const handleChange = (field: keyof AddressForm, value: string) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
+  const onSubmit = (data: AddressFormInput) => {
+    console.log("Dữ liệu địa chỉ hợp lệ:", data);
+    onConfirm(); 
   };
 
-  const isValid = Object.values(form).every((v) => v.trim() !== "");
-
   return (
-    <div>
-      <h3 className="text-sm font-semibold mb-1">Đăng ký địa chỉ mới</h3>
-      <p className="text-xs text-gray-500 mb-1">
-        *Vui lòng kiểm tra ký địa chỉ của bạn. Sai lệch thông tin có thể khiến đơn hàng bị hủy
-        hoặc giao chậm.
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <h3 className="text-lg font-body mb-1">Đăng ký địa chỉ mới</h3>
+
+      <p className="text-sm">
+        <span className="text-red-500">* </span>
+        <span className="text-black">
+          Vui lòng kiểm tra ký địa chỉ của bạn. Sai lệch thông tin có thể khiến
+          đơn hàng bị hủy hoặc giao chậm.
+        </span>
       </p>
-      <p className="text-xs text-gray-400 mb-5 text-right">Bắt buộc *</p>
+
+      <p className="text-sm mb-5 text-right">
+        <span className="text-black">Bắt buộc </span>
+        <span className="text-blue-700">*</span>
+      </p>
 
       <div className="space-y-4">
         {/* Full name */}
         <div>
-          <label className="text-xs font-medium text-gray-700 mb-1 block">
-            Họ và Tên <span className="text-red-500">*</span>
+          <label className="text-base font-body text-gray-700 mb-1 block">
+            Họ và Tên <span className="text-blue-700">*</span>
           </label>
           <input
             type="text"
             placeholder="Vui lòng nhập họ và tên"
-            value={form.fullName}
-            onChange={(e) => handleChange("fullName", e.target.value)}
-            className="w-full border border-gray-300 px-3 py-2.5 text-sm placeholder-gray-300 focus:outline-none focus:border-black transition-colors"
+            {...register("fullName", { required: "Vui lòng nhập họ và tên" })}
+            className={`w-full border px-3 py-2.5 text-sm placeholder-gray-400 focus:outline-none transition-colors
+              ${errors.fullName ? "border-red-500" : "border-gray-400 focus:border-black"}`}
           />
+          {errors.fullName && (
+            <p className="text-xs text-red-500 mt-1">{errors.fullName.message}</p>
+          )}
         </div>
 
         {/* Province */}
         <div>
-          <label className="text-xs font-medium text-gray-700 mb-1 block">
-            Thành phố/Tỉnh <span className="text-red-500">*</span>
+          <label className="text-base font-body text-gray-700 mb-1 block">
+            Thành phố/Tỉnh <span className="text-blue-700">*</span>
           </label>
           <input
             type="text"
             placeholder="Vui lòng chọn 1 thành phố/tỉnh"
-            value={form.province}
-            onChange={(e) => handleChange("province", e.target.value)}
-            className="w-full border border-gray-300 px-3 py-2.5 text-sm placeholder-gray-300 focus:outline-none focus:border-black transition-colors"
+            {...register("province", { required: "Vui lòng chọn tỉnh/thành" })}
+            className={`w-full border px-3 py-2.5 text-sm placeholder-gray-400 focus:outline-none transition-colors
+              ${errors.province ? "border-red-500" : "border-gray-400 focus:border-black"}`}
           />
+          {errors.province && (
+            <p className="text-xs text-red-500 mt-1">{errors.province.message}</p>
+          )}
         </div>
 
         {/* Ward */}
         <div>
-          <label className="text-xs font-medium text-gray-700 mb-1 block">
-            Phường <span className="text-red-500">*</span>
+          <label className="text-base font-body text-gray-700 mb-1 block">
+            Phường <span className="text-blue-700">*</span>
           </label>
           <input
             type="text"
             placeholder="Vui lòng chọn phường của bạn"
-            value={form.ward}
-            onChange={(e) => handleChange("ward", e.target.value)}
-            className="w-full border border-gray-300 px-3 py-2.5 text-sm placeholder-gray-300 focus:outline-none focus:border-black transition-colors"
+            {...register("ward", { required: "Vui lòng chọn phường" })}
+            className={`w-full border px-3 py-2.5 text-sm placeholder-gray-400 focus:outline-none transition-colors
+              ${errors.ward ? "border-red-500" : "border-gray-400 focus:border-black"}`}
           />
+          {errors.ward && (
+            <p className="text-xs text-red-500 mt-1">{errors.ward.message}</p>
+          )}
         </div>
 
-        {/* Address detail */}
         <div>
-          <label className="text-xs font-medium text-gray-700 mb-1 block">
-            Chi tiết địa chỉ <span className="text-red-500">*</span>
+          <label className="text-base font-body text-gray-700 mb-1 block">
+            Chi tiết địa chỉ <span className="text-blue-700">*</span>
           </label>
           <input
             type="text"
             placeholder="Số nhà, số đường, toà nhà,..."
-            value={form.addressDetail}
-            onChange={(e) => handleChange("addressDetail", e.target.value)}
-            className="w-full border border-gray-300 px-3 py-2.5 text-sm placeholder-gray-300 focus:outline-none focus:border-black transition-colors"
+            {...register("addressDetail", { required: "Vui lòng nhập địa chỉ chi tiết" })}
+            className={`w-full border px-3 py-2.5 text-sm placeholder-gray-400 focus:outline-none transition-colors
+              ${errors.addressDetail ? "border-red-500" : "border-gray-400 focus:border-black"}`}
           />
+          {errors.addressDetail && (
+            <p className="text-xs text-red-500 mt-1">{errors.addressDetail.message}</p>
+          )}
         </div>
 
         {/* Phone */}
         <div>
-          <label className="text-xs font-medium text-gray-700 mb-1 block">Số điện thoại</label>
+          <label className="text-base font-body text-gray-700 mb-1 block">
+            Số điện thoại <span className="text-blue-700">*</span>
+          </label>
           <input
             type="tel"
             placeholder="Vui lòng nhập số điện thoại"
-            value={form.phone}
-            onChange={(e) => handleChange("phone", e.target.value)}
-            className="w-full border border-gray-300 px-3 py-2.5 text-sm placeholder-gray-300 focus:outline-none focus:border-black transition-colors"
+            {...register("phone", { 
+              required: "Vui lòng nhập số điện thoại",
+              pattern: {
+                value: /^(0|\+84)[3-9][0-9]{8}$/,
+                message: "Số điện thoại không hợp lệ"
+              }
+            })}
+            className={`w-full border px-3 py-2.5 text-sm placeholder-gray-400 focus:outline-none transition-colors
+              ${errors.phone ? "border-red-500" : "border-gray-400 focus:border-black"}`}
           />
+          {errors.phone && (
+            <p className="text-xs text-red-500 mt-1">{errors.phone.message}</p>
+          )}
         </div>
 
+        {/* Button */}
         <div className="pt-2">
           <Button
+            type="submit"  
             variant="primary-border"
-            onClick={onConfirm}
-            disabled={!isValid}
-            className="w-fit px-10"
+            size="md"                 
+            disabled={!isValid} 
+            className="w-fit"         
           >
             XÁC NHẬN
           </Button>
         </div>
       </div>
-    </div>
+    </form>
   );
 }
 
@@ -279,23 +317,29 @@ function SavedAddressCard({
 }) {
   return (
     <div>
-      <h3 className="text-sm font-semibold mb-4">Địa chỉ giao hàng</h3>
+      <h3 className="text-sm font-body mb-4">Địa chỉ giao hàng</h3>
       <p className="text-xs text-gray-500 mb-4">
-        *Vui lòng kiểm tra ký địa chỉ của bạn. Sai lệch thông tin có thể khiến đơn hàng bị hủy
-        hoặc giao chậm.
+        *Vui lòng kiểm tra ký địa chỉ của bạn. Sai lệch thông tin có thể khiến
+        đơn hàng bị hủy hoặc giao chậm.
       </p>
 
       {/* Saved card */}
       <div className="border border-gray-200 p-4 mb-4 relative">
         {/* Checkmark */}
         <div className="flex items-start gap-3">
-          <div className="mt-0.5 w-5 h-5 rounded-full bg-black flex items-center justify-center flex-shrink-0">
+          <div className="mt-0.5 w-5 h-5 rounded-full bg-black flex items-center justify-center shrink-0">
             <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
-              <path d="M1 4l3 3 5-6" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              <path
+                d="M1 4l3 3 5-6"
+                stroke="white"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </svg>
           </div>
           <div className="text-sm space-y-0.5">
-            <p className="font-medium">{address.name}</p>
+            <p className="font-body">{address.name}</p>
             <p className="text-gray-600">{address.district}</p>
             <p className="text-gray-600">{address.gender}</p>
             <p className="text-gray-600">{address.city}</p>
@@ -338,8 +382,10 @@ function SavedAddressCard({
 function PaymentMethod() {
   return (
     <div className="mt-10">
-      <h2 className="text-base font-semibold mb-1">2. Phương thức thanh toán</h2>
-      <p className="text-sm text-gray-400">Vui lòng chọn phương thức thanh toán.</p>
+      <h2 className="text-base font-body mb-1">2. Phương thức thanh toán</h2>
+      <p className="text-sm text-gray-400">
+        Vui lòng chọn phương thức thanh toán.
+      </p>
     </div>
   );
 }
@@ -348,8 +394,9 @@ function PaymentMethod() {
 type AddressState = "form" | "saved";
 
 export default function Payment() {
-  const navigate = useNavigate();
-  const [shippingOption, setShippingOption] = useState<"standard" | "express">("standard");
+  const [shippingOption, setShippingOption] = useState<"standard" | "express">(
+    "standard",
+  );
   const [addressState, setAddressState] = useState<AddressState>("form");
 
   // Simulate: toggle between states for demonstration
@@ -372,27 +419,33 @@ export default function Payment() {
       <div className="h-[80px]"></div>
 
       <div className="w-fit mx-auto px-10 py-2 bg-black text-white text-xs tracking-wide text-center">
-        Miễn phí giao hàng tiêu chuẩn từ 500.000 VND | Freeship Hỏa tốc cho đơn từ 1.000.000 VND.
+        Miễn phí giao hàng tiêu chuẩn từ 500.000 VND | Freeship Hỏa tốc cho đơn
+        từ 1.000.000 VND.
       </div>
 
-      <main className="flex-1 max-w-[1200px] mx-auto w-full px-4 sm:px-6 lg:px-8 py-10">
-        <h1 className="text-xl font-semibold mb-8 tracking-wide">Thanh Toán</h1>
+      <main className="flex-1 max-w-300 mx-auto w-full px-4 sm:px-6 lg:px-8 py-10">
+        <h1 className="text-3xl font-body mb-8 tracking-wide">Thanh Toán</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-8 items-start">
           {/* ── Left column ── */}
           <div>
             {/* Section 1 */}
             <div className="mb-2">
-              <h2 className="text-base font-semibold mb-5">1. Tùy chọn giao hàng</h2>
+              <h2 className="text-xl font-semibold mb-5">
+                1. Tùy chọn giao hàng
+              </h2>
 
-              <ShippingOptions selected={shippingOption} onChange={setShippingOption} />
+              <ShippingOptions
+                selected={shippingOption}
+                onChange={setShippingOption}
+              />
 
               {hasSavedAddress ? (
                 <SavedAddressCard
                   address={MOCK_SAVED_ADDRESS}
                   onEdit={handleEdit}
                   onRegisterNew={handleEdit}
-                  onContinue={() => navigate("/order-success")}
+                  onContinue={() => alert("Tiếp tục thanh toán!")}
                 />
               ) : (
                 <NewAddressForm onConfirm={handleFormConfirm} />
@@ -404,7 +457,10 @@ export default function Payment() {
           </div>
 
           {/* ── Right column: Order summary ── */}
-          <OrderSummary />
+          <div className="flex flex-col gap-4 sticky top-24 self-start">
+            <OrderSummary />
+            <VoucherBox />
+          </div>
         </div>
       </main>
 
