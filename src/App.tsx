@@ -17,6 +17,8 @@ import WishlistPage from './pages/customer/wishlist'
 import AdminLayout from './components/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import ContentManagementPage from './pages/admin/ContentManagementPage'
+import CustomerManagement from './pages/admin/CustomerManagement'
+import AdminOrders from './pages/admin/order_management/AdminOrders/AdminOrders'
 
 /* ── Scroll to top on every route change ── */
 function ScrollToTop() {
@@ -195,6 +197,19 @@ function App() {
             element={
               <AdminLayout>
                 <ContentManagementPage />
+            path="/admin/customers"
+            element={
+              <AdminLayout>
+                <CustomerManagement />
+                </AdminLayout>
+            }
+          />
+          
+          <Route     
+            path="/admin/orders"
+            element={
+              <AdminLayout>
+                <AdminOrders />
               </AdminLayout>
             }
           />
