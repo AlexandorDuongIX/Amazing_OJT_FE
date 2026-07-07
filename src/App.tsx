@@ -16,6 +16,7 @@ import WishlistPage from './pages/customer/wishlist'
 
 import AdminLayout from './components/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
+import ContentManagementPage from './pages/admin/ContentManagementPage'
 import CustomerManagement from './pages/admin/CustomerManagement'
 import AdminOrders from './pages/admin/order_management/AdminOrders/AdminOrders'
 
@@ -192,6 +193,10 @@ function App() {
           />
 
           <Route
+            path="/admin/content"
+            element={
+              <AdminLayout>
+                <ContentManagementPage />
             path="/admin/customers"
             element={
               <AdminLayout>
