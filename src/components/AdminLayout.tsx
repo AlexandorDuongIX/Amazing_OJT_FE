@@ -20,7 +20,7 @@ const sidebarLinks: SidebarLink[] = [
   { label: 'Inventory', href: '/admin/inventory', icon: 'inventory_2' },
   { label: 'Customers', href: '/admin/customers', icon: 'group' },
   { label: 'Orders', href: '/admin/orders', icon: 'shopping_bag' },
-  { label: 'Marketing', href: '/admin/marketing', icon: 'campaign' },
+  { label: 'Content Management', href: '/admin/content', icon: 'article' },
   { label: 'Reports', href: '/admin/reports', icon: 'analytics' },
   { label: 'Staff', href: '/admin/staff', icon: 'badge' },
 ]
