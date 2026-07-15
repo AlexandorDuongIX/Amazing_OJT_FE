@@ -16,6 +16,11 @@ import WishlistPage from './pages/customer/wishlist'
 
 import AdminLayout from './components/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
+import ContentManagementPage from './pages/admin/ContentManagementPage'
+import CustomerManagement from './pages/admin/CustomerManagement'
+import AdminOrders from './pages/admin/order_management/AdminOrders/AdminOrders'
+import ReportManagementPage from './pages/admin/ReportManagementPage'
+import InventoryPage from './pages/admin/InventoryPage'
 
 import PromotionManagement from './pages/admin/promotions/PromotionManagement'
 import BlogListPage from './pages/customer/BlogListPage'
@@ -214,6 +219,7 @@ function App() {
           />
 
           <Route
+
             path="/admin/promotions"
             element={
               <AdminLayout>
@@ -242,6 +248,47 @@ function App() {
             element={
               <AdminLayout>
                 <ProductFormPage />
+
+            path="/admin/content"
+            element={
+              <AdminLayout>
+                <ContentManagementPage />
+              </AdminLayout>
+            }
+          />
+
+          <Route
+            path="/admin/customers"
+            element={
+              <AdminLayout>
+                <CustomerManagement />
+              </AdminLayout>
+            }
+          />
+          
+          <Route     
+            path="/admin/orders"
+            element={
+              <AdminLayout>
+                <AdminOrders />
+              </AdminLayout>
+            }
+          />
+
+          <Route
+            path="/admin/inventory"
+            element={
+              <AdminLayout>
+                <InventoryPage />
+              </AdminLayout>
+            }
+          />
+
+          <Route
+            path="/admin/reports"
+            element={
+              <AdminLayout>
+                <ReportManagementPage />
               </AdminLayout>
             }
           />

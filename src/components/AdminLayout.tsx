@@ -30,6 +30,14 @@ const links: AdminLink[] = [
   { label: 'Orders', href: '/admin/orders', icon: ShoppingBag },
   { label: 'Marketing', href: '/admin/marketing', icon: Megaphone },
   { label: 'Promotions', href: '/admin/promotions', icon: TicketPercent },
+const sidebarLinks: SidebarLink[] = [
+  { label: 'Dashboard', href: '/admin', icon: 'dashboard' },
+  { label: 'Inventory', href: '/admin/inventory', icon: 'inventory_2' },
+  { label: 'Customers', href: '/admin/customers', icon: 'group' },
+  { label: 'Orders', href: '/admin/orders', icon: 'shopping_bag' },
+  { label: 'Content Management', href: '/admin/content', icon: 'article' },
+  { label: 'Reports', href: '/admin/reports', icon: 'analytics' },
+  { label: 'Staff', href: '/admin/staff', icon: 'badge' },
 ]
 
 function isLinkActive(pathname: string, href: string) {
