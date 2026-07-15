@@ -4,8 +4,8 @@ import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant
 import type { ColumnsType } from 'antd/es/table';
 import type { FormInstance } from 'antd';
 import dayjs from 'dayjs';
-import { mockPromotions } from '../data/promotionStorage';
-import type { Promotion } from '../data/promotionStorage';
+import { mockPromotions } from '../../store/promotionStorage';
+import type { Promotion } from '../../store/promotionStorage';
 
 const { RangePicker } = DatePicker;
 

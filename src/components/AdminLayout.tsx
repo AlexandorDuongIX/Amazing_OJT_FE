@@ -24,8 +24,8 @@ interface AdminLink {
 
 const links: AdminLink[] = [
   { label: 'Dashboard', href: '/admin', icon: House },
-  { label: 'Inventory', href: '/admin/inventory', icon: Boxes },
-  { label: 'Blogs', href: '/admin/blogs', icon: BookOpenText },
+  { label: 'Products', href: '/admin/inventory', icon: Boxes },
+
   { label: 'Customers', href: '/admin/customers', icon: Users },
   { label: 'Orders', href: '/admin/orders', icon: ShoppingBag },
   { label: 'Marketing', href: '/admin/marketing', icon: Megaphone },

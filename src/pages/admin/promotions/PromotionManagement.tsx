@@ -3,8 +3,8 @@ import { Table, Button, Input, Tag, Space, Modal, Form, message, Popconfirm } fr
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
-import { mockPromotions } from '../data/promotionStorage';
-import type { Promotion } from '../data/promotionStorage';
+import { mockPromotions } from '../../../store/promotionStorage';
+import type { Promotion } from '../../../store/promotionStorage';
 import PromotionForm from './PromotionForm';
 
 const PromotionManagement: React.FC = () => {

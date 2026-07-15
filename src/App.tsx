@@ -16,11 +16,12 @@ import WishlistPage from './pages/customer/wishlist'
 
 import AdminLayout from './components/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
-import BlogManagement from './pages/admin/BlogManagement'
+
+import PromotionManagement from './pages/admin/promotions/PromotionManagement'
 import BlogListPage from './pages/customer/BlogListPage'
 import BlogDetailPage from './pages/customer/BlogDetailPage'
-import ProductManagementPage from './features/admin/products/ProductManagementPage'
-import ProductFormPage from './features/admin/products/ProductFormPage'
+import ProductManagementPage from './pages/admin/products/ProductManagementPage'
+import ProductFormPage from './pages/admin/products/ProductFormPage'
 
 /* ── Scroll to top on every route change ── */
 function ScrollToTop() {
@@ -211,11 +212,12 @@ function App() {
               </AdminLayout>
             }
           />
+
           <Route
-            path="/admin/blogs"
+            path="/admin/promotions"
             element={
               <AdminLayout>
-                <BlogManagement />
+                <PromotionManagement />
               </AdminLayout>
             }
           />

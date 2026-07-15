@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { create } from 'zustand';
-import type { Promotion } from '../data/promotionStorage';
+import type { Promotion } from '../../store/promotionStorage';
 import { useNavigate } from "react-router-dom";
 import { Info } from "lucide-react";
 import Navbar from "../../components/Navbar";

@@ -1,10 +1,9 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import type { Blog } from '../data/blogStorage'
-import { getBlogs } from '../data/blogStorage'
+import { staticBlogs } from '../../utils/staticBlogs'
 
 export default function BlogListPage() {
-    const [blogs] = useState<Blog[]>(() => getBlogs())
+    const [blogs] = useState(staticBlogs)
     const [keyword, setKeyword] = useState('')
 
     const filteredBlogs = blogs.filter((blog) =>

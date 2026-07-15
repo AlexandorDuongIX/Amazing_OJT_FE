@@ -1,13 +1,11 @@
 
 import { useParams, Link } from 'react-router-dom'
-import {
-    getBlogs
-} from '../data/blogStorage'
+import { staticBlogs } from '../../utils/staticBlogs'
 
 export default function BlogDetailPage() {
     const { id } = useParams()
 
-    const blogs = getBlogs()
+    const blogs = staticBlogs
 
     const blog = blogs.find(
         (x) => x.id === Number(id)

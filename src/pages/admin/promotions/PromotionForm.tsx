@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Form, Input, DatePicker } from 'antd';
 import type { FormInstance } from 'antd';
 import dayjs from 'dayjs';
-import type { Promotion } from '../data/promotionStorage';
+import type { Promotion } from '../../../store/promotionStorage';
 
 const { RangePicker } = DatePicker;
 
