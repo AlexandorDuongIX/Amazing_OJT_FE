@@ -20,6 +20,7 @@ import ContentManagementPage from './pages/admin/ContentManagementPage'
 import CustomerManagement from './pages/admin/CustomerManagement'
 import AdminOrders from './pages/admin/order_management/AdminOrders/AdminOrders'
 import ReportManagementPage from './pages/admin/ReportManagementPage'
+import InventoryPage from './pages/admin/InventoryPage'
 
 /* ── Scroll to top on every route change ── */
 function ScrollToTop() {
@@ -216,6 +217,15 @@ function App() {
             element={
               <AdminLayout>
                 <AdminOrders />
+              </AdminLayout>
+            }
+          />
+
+          <Route
+            path="/admin/inventory"
+            element={
+              <AdminLayout>
+                <InventoryPage />
               </AdminLayout>
             }
           />
