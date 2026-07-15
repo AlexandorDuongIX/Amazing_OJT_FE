@@ -1,8 +1,8 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import axios from 'axios'
 import { useCartStore } from '../cart/cartStore'
-import type { Product } from '../../../types/product'
+import { fetchProducts } from '../../../services/productApi'
+import type { ProductListDto } from '../../../types/product'
 
 /* ============================================================
    ProductListPage — AMAZING Clothing Shop (Customer Page)
@@ -53,7 +53,7 @@ function FilterSelect({ label, options, value, onChange }: FilterSelectProps) {
 
 /* ---------- Product Card ---------- */
 interface ProductCardProps {
-  product: Product
+  product: ProductListDto
   onAddToCart: () => void
 }
 
@@ -61,7 +61,8 @@ function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const navigate = useNavigate()
   const [wished, setWished] = useState(false)
   const [imgError, setImgError] = useState(false)
-  const hasDiscount = product.discountPrice < product.price
+  const hasDiscount = product.price < product.basePrice
+  const isOutOfStock = product.availableQuantity <= 0
 
   return (
     <div
@@ -79,11 +80,20 @@ function ProductCard({ product, onAddToCart }: ProductCardProps) {
       <div className="relative aspect-[3/4] overflow-hidden mb-4 bg-surface-container-low">
         {/* Product Image */}
         <img
-          src={imgError ? 'https://via.placeholder.com/400x533?text=No+Image' : (product.images?.[0] ?? '')}
+          src={imgError ? 'https://via.placeholder.com/400x533?text=No+Image' : (product.thumbnailUrl || product.imageUrl || 'https://via.placeholder.com/400x533?text=No+Image')}
           alt={product.name}
           onError={() => setImgError(true)}
           className="object-cover w-full h-full absolute inset-0 transition-transform duration-500 ease-in-out group-hover:scale-105"
         />
+
+        {/* Out of Stock Overlay */}
+        {isOutOfStock && (
+          <div className="absolute inset-0 bg-surface/60 flex items-center justify-center z-10 backdrop-blur-[2px]">
+            <span className="bg-surface text-on-surface px-4 py-2 font-label text-[14px] font-bold uppercase tracking-widest rounded-sm border border-outline">
+              Hết Hàng
+            </span>
+          </div>
+        )}
 
         {/* Wishlist Button */}
         <button
@@ -104,28 +114,35 @@ function ProductCard({ product, onAddToCart }: ProductCardProps) {
         </button>
 
         {/* Add to Cart — Slides up on hover */}
-        <div className="absolute bottom-0 left-0 w-full p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out">
-          <button
-            onClick={(e) => { e.stopPropagation(); onAddToCart() }}
-            className="w-full py-3 bg-primary text-on-primary font-label text-[14px] font-semibold uppercase tracking-wider hover:bg-secondary transition-colors duration-200"
-          >
-            Thêm Vào Giỏ
-          </button>
-        </div>
+        {!isOutOfStock && (
+          <div className="absolute bottom-0 left-0 w-full p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out z-20">
+            <button
+              onClick={(e) => { e.stopPropagation(); onAddToCart() }}
+              className="w-full py-3 bg-primary text-on-primary font-label text-[14px] font-semibold uppercase tracking-wider hover:bg-secondary transition-colors duration-200"
+            >
+              Thêm Vào Giỏ
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Info */}
       <div className="text-center px-1">
+        {product.brand && product.brand !== 'No Brand' && (
+          <div className="font-label text-[12px] uppercase text-on-surface-variant mb-1 tracking-widest">
+            {product.brand}
+          </div>
+        )}
         <h3 className="font-headline text-[18px] md:text-[20px] font-medium text-on-surface mb-1 leading-snug">
           {product.name}
         </h3>
         {hasDiscount ? (
           <div className="flex items-center justify-center gap-2">
             <span className="font-body text-[14px] font-semibold text-error">
-              {formatVND(product.discountPrice)}
+              {formatVND(product.price)}
             </span>
             <span className="font-body text-[13px] text-on-surface-variant line-through">
-              {formatVND(product.price)}
+              {formatVND(product.basePrice)}
             </span>
           </div>
         ) : (
@@ -154,8 +171,41 @@ function SkeletonCard() {
 const CATEGORY_TITLES: Record<string, string> = {
   nam: 'Thời Trang Nam',
   nu: 'Thời Trang Nữ',
-  'phu-kien': 'Phụ Kiện',
+  'tre-em': 'Trẻ Em',
 }
+
+const CATEGORY_IDS: Record<string, number> = {
+  nam: 1,
+  nu: 2,
+  'tre-em': 3,
+}
+
+/* ---------- Static Options ---------- */
+const categoryOptions = [
+  { value: '1', label: 'Thời Trang Nam' },
+  { value: '2', label: 'Thời Trang Nữ' },
+  { value: '3', label: 'Trẻ Em' },
+]
+
+const colorOptions = [
+  { value: 'Đen', label: 'Đen' },
+  { value: 'Trắng', label: 'Trắng' },
+  { value: 'Xanh', label: 'Xanh' },
+  { value: 'Đỏ', label: 'Đỏ' },
+  { value: 'Vàng', label: 'Vàng' },
+  { value: 'Nâu', label: 'Nâu' },
+  { value: 'Hồng', label: 'Hồng' },
+  { value: 'Xám', label: 'Xám' },
+]
+
+const sizeOptions = [
+  { value: 'XS', label: 'XS' },
+  { value: 'S', label: 'S' },
+  { value: 'M', label: 'M' },
+  { value: 'L', label: 'L' },
+  { value: 'XL', label: 'XL' },
+  { value: 'XXL', label: 'XXL' },
+]
 
 /* ---------- ProductListPage ---------- */
 export default function ProductListPage() {
@@ -163,80 +213,93 @@ export default function ProductListPage() {
   const pageTitle = category ? (CATEGORY_TITLES[category] ?? 'Bộ Sưu Tập') : 'Tất Cả Sản Phẩm'
   const { addItem, showToast } = useCartStore()
 
-  const [products, setProducts] = useState<Product[]>([])
+  const [products, setProducts] = useState<ProductListDto[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // API State
+  const [page, setPage] = useState(1)
+  const [totalItems, setTotalItems] = useState(0)
+  const pageSize = 12
+
+  // Filter State
   const [filterCategory, setFilterCategory] = useState('')
   const [filterColor, setFilterColor] = useState('')
   const [filterSize, setFilterSize] = useState('')
   const [priceRange, setPriceRange] = useState('')
   const [sortBy, setSortBy] = useState('')
-  const [visibleCount, setVisibleCount] = useState(8)
+
+  // Sync category route with filterCategory internally
+  useEffect(() => {
+    if (category && CATEGORY_IDS[category]) {
+      setFilterCategory(CATEGORY_IDS[category].toString())
+    } else {
+      setFilterCategory('')
+    }
+  }, [category])
+
+  // Reset page to 1 when any filter changes
+  // We use a ref to prevent double fetching on mount when category is set
+  const initialMount = useRef(true)
+  useEffect(() => {
+    if (initialMount.current) {
+      initialMount.current = false
+      return
+    }
+    setPage(1)
+  }, [filterCategory, filterColor, filterSize, priceRange, sortBy])
 
   /* ── Fetch from API ── */
   useEffect(() => {
-    const apiBase = import.meta.env.VITE_API_BASE_URL
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true)
     setError(null)
-    axios
-      .get<Product[]>(`${apiBase}/data`)
-      .then((res) => {
-        setProducts(res.data)
+    
+    let minPrice: number | undefined;
+    let maxPrice: number | undefined;
+    if (priceRange === 'duoi-300k') maxPrice = 300000;
+    else if (priceRange === '300k-600k') { minPrice = 300000; maxPrice = 600000; }
+    else if (priceRange === 'tren-600k') minPrice = 600000;
+
+    let sortField: string | undefined;
+    let sortDirection: string | undefined;
+    if (sortBy === 'gia-tang') { sortField = 'price'; sortDirection = 'asc'; }
+    else if (sortBy === 'gia-giam') { sortField = 'price'; sortDirection = 'desc'; }
+    else if (sortBy === 'danh-gia') { sortField = 'rating'; sortDirection = 'desc'; }
+
+    fetchProducts({
+      page,
+      pageSize,
+      categoryId: filterCategory ? Number(filterCategory) : undefined,
+      minPrice,
+      maxPrice,
+      color: filterColor || undefined,
+      size: filterSize || undefined,
+      sortBy: sortField,
+      sortDirection
+    })
+      .then((data) => {
+        setTotalItems(data.totalItems)
+        if (page === 1) {
+          setProducts(data.items)
+        } else {
+          setProducts(prev => {
+            // Filter duplicates just in case
+            const existingIds = new Set(prev.map(p => p.id))
+            const newItems = data.items.filter(p => !existingIds.has(p.id))
+            return [...prev, ...newItems]
+          })
+        }
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error(err)
         setError('Không thể tải sản phẩm. Vui lòng thử lại sau.')
       })
       .finally(() => {
         setLoading(false)
       })
-  }, [])
+  }, [page, filterCategory, filterColor, filterSize, priceRange, sortBy])
 
-  // Reset paging whenever the route category changes
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setVisibleCount(8)
-  }, [category])
-
-  /* ── Derive unique filter options from data ── */
-  const categoryOptions = useMemo(() => {
-    const cats = [...new Set(products.map((p) => p.category))]
-    return cats.map((c) => ({ value: c, label: c }))
-  }, [products])
-
-  const colorOptions = useMemo(() => {
-    const colors = [...new Set(products.flatMap((p) => p.colors?.map((c) => c.name) ?? []))]
-    return colors.map((c) => ({ value: c, label: c }))
-  }, [products])
-
-  const sizeOptions = useMemo(() => {
-    const sizes = [...new Set(products.flatMap((p) => p.sizes ?? []))]
-    return sizes.map((s) => ({ value: s, label: s }))
-  }, [products])
-
-  /* ── Filter + Sort logic ── */
-  const filteredProducts = useMemo(() => {
-    let list = [...products]
-
-    if (filterCategory) list = list.filter((p) => p.category === filterCategory)
-    if (filterColor) list = list.filter((p) => p.colors?.some((c) => c.name === filterColor))
-    if (filterSize) list = list.filter((p) => p.sizes?.includes(filterSize))
-
-    if (priceRange === 'duoi-300k') list = list.filter((p) => (p.discountPrice || p.price) < 300000)
-    else if (priceRange === '300k-600k')
-      list = list.filter((p) => (p.discountPrice || p.price) >= 300000 && (p.discountPrice || p.price) <= 600000)
-    else if (priceRange === 'tren-600k') list = list.filter((p) => (p.discountPrice || p.price) > 600000)
-
-    if (sortBy === 'gia-tang') list = [...list].sort((a, b) => (a.discountPrice || a.price) - (b.discountPrice || b.price))
-    else if (sortBy === 'gia-giam') list = [...list].sort((a, b) => (b.discountPrice || b.price) - (a.discountPrice || a.price))
-    else if (sortBy === 'danh-gia') list = [...list].sort((a, b) => b.rating - a.rating)
-
-    return list
-  }, [products, filterCategory, filterColor, filterSize, priceRange, sortBy])
-
-  const visibleProducts = filteredProducts.slice(0, visibleCount)
-  const hasMore = visibleCount < filteredProducts.length
+  const hasMore = products.length < totalItems
 
   return (
     <main className="w-full max-w-[1440px] mx-auto px-[20px] md:px-[80px] py-16 md:py-24">
@@ -249,28 +312,31 @@ export default function ProductListPage() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-outline-variant pb-6">
           {/* ── Filters ── */}
           <div className="flex flex-wrap gap-4 md:gap-8 w-full md:w-auto">
-            <FilterSelect
-              label="Danh mục"
-              value={filterCategory}
-              onChange={(v) => { setFilterCategory(v); setVisibleCount(8) }}
-              options={categoryOptions}
-            />
+            {/* Show Category filter only if not already viewing a specific category route */}
+            {!category && (
+              <FilterSelect
+                label="Danh mục"
+                value={filterCategory}
+                onChange={setFilterCategory}
+                options={categoryOptions}
+              />
+            )}
             <FilterSelect
               label="Màu sắc"
               value={filterColor}
-              onChange={(v) => { setFilterColor(v); setVisibleCount(8) }}
+              onChange={setFilterColor}
               options={colorOptions}
             />
             <FilterSelect
               label="Kích cỡ"
               value={filterSize}
-              onChange={(v) => { setFilterSize(v); setVisibleCount(8) }}
+              onChange={setFilterSize}
               options={sizeOptions}
             />
             <FilterSelect
               label="Khoảng giá"
               value={priceRange}
-              onChange={(v) => { setPriceRange(v); setVisibleCount(8) }}
+              onChange={setPriceRange}
               options={[
                 { value: 'duoi-300k', label: 'Dưới 300.000 ₫' },
                 { value: '300k-600k', label: '300.000 – 600.000 ₫' },
@@ -286,9 +352,9 @@ export default function ProductListPage() {
               value={sortBy}
               onChange={setSortBy}
               options={[
-                { value: 'danh-gia', label: 'Đánh giá cao nhất' },
                 { value: 'gia-tang', label: 'Giá tăng dần' },
                 { value: 'gia-giam', label: 'Giá giảm dần' },
+                { value: 'danh-gia', label: 'Đánh giá cao nhất' },
               ]}
             />
           </div>
@@ -312,31 +378,30 @@ export default function ProductListPage() {
       {/* ── Product Grid ── */}
       {!error && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 md:gap-x-[24px] gap-y-12 md:gap-y-16">
-          {loading
-            ? Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)
-            : visibleProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onAddToCart={() => {
-                  addItem({
-                    id: product.id,
-                    name: product.name,
-                    price: product.discountPrice || product.price,
-                    imageUrl: product.images?.[0] ?? '',
-                    size: product.sizes?.[0] ?? '',
-                    color: product.colors?.[0]?.value ?? '',
-                    quantity: 1,
-                  })
-                  showToast(product.name, product.images?.[0] ?? '', product.discountPrice || product.price)
-                }}
-              />
-            ))}
+          {products.map((product) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              onAddToCart={() => {
+                addItem({
+                  id: product.id.toString(),
+                  name: product.name,
+                  price: product.price,
+                  imageUrl: product.thumbnailUrl || product.imageUrl || '',
+                  size: product.variantsSummary?.[0]?.size ?? '',
+                  color: product.variantsSummary?.[0]?.color ?? '',
+                  quantity: 1,
+                })
+                showToast(product.name, product.thumbnailUrl || product.imageUrl || '', product.price)
+              }}
+            />
+          ))}
+          {loading && Array.from({ length: pageSize }).map((_, i) => <SkeletonCard key={`skel-${i}`} />)}
         </div>
       )}
 
       {/* ── Empty state ── */}
-      {!loading && !error && filteredProducts.length === 0 && (
+      {!loading && !error && products.length === 0 && (
         <div className="text-center py-20">
           <span className="material-symbols-outlined text-[48px] text-on-surface-variant mb-4 block">
             search_off
@@ -351,17 +416,17 @@ export default function ProductListPage() {
       {!loading && !error && hasMore && (
         <div className="mt-16 flex justify-center">
           <button
-            onClick={() => setVisibleCount((c) => c + 4)}
-            className="border border-primary px-10 py-4 font-label text-[14px] font-semibold uppercase tracking-widest text-primary hover:bg-primary hover:text-on-primary transition-colors duration-300"
+            onClick={() => setPage((p) => p + 1)}
+            className="border border-primary px-10 py-4 font-label text-[14px] font-semibold uppercase tracking-widest text-primary hover:bg-primary hover:text-on-primary transition-colors duration-300 cursor-pointer"
           >
             Xem Thêm Sản Phẩm
           </button>
         </div>
       )}
 
-      {!loading && !error && filteredProducts.length > 0 && !hasMore && (
+      {!loading && !error && products.length > 0 && !hasMore && (
         <p className="mt-16 text-center font-label text-[13px] uppercase tracking-widest text-on-surface-variant">
-          Đã hiển thị tất cả {filteredProducts.length} sản phẩm
+          Đã hiển thị tất cả {totalItems} sản phẩm
         </p>
       )}
     </main>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
-import axios from 'axios'
-import type { Product } from '../../../types/product'
+import type { ProductDetailDto, ProductListDto } from '../../../types/product'
+import { fetchProductById, fetchProducts } from '../../../services/productApi'
 import { useCartStore } from '../cart/cartStore'
 
 /* ---------- Helpers ---------- */
@@ -65,8 +65,8 @@ export default function ProductDetailPage() {
   const navigate = useNavigate()
   const { addItem, showToast } = useCartStore()
 
-  const [product, setProduct] = useState<Product | null>(null)
-  const [relatedProducts, setRelatedProducts] = useState<Product[]>([])
+  const [product, setProduct] = useState<ProductDetailDto | null>(null)
+  const [relatedProducts, setRelatedProducts] = useState<ProductListDto[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -75,8 +75,6 @@ export default function ProductDetailPage() {
   const [openPanel, setOpenPanel] = useState<'description' | 'fabric' | 'delivery'>('description')
   const [mainImgError, setMainImgError] = useState(false)
 
-  const apiBase = import.meta.env.VITE_API_BASE_URL
-
   /* ── Fetch product by id ── */
   useEffect(() => {
     if (!productId) return
@@ -84,31 +82,27 @@ export default function ProductDetailPage() {
     setError(null)
     setMainImgError(false)
 
-    axios
-      .get<Product>(`${apiBase}/data/${productId}`)
-      .then((res) => {
-        const p = res.data
+    fetchProductById(productId)
+      .then((p) => {
         setProduct(p)
-        setSelectedColor(p.colors?.[0]?.value ?? '')
-        setSelectedSize(p.sizes?.[0] ?? '')
+        const colors = [...new Set(p.variants?.map(v => v.color).filter(Boolean))]
+        const sizes = [...new Set(p.variants?.map(v => v.size).filter(Boolean))]
+        setSelectedColor((colors[0] as string) ?? '')
+        setSelectedSize((sizes[0] as string) ?? '')
       })
       .catch(() => setError('Không thể tải sản phẩm. Vui lòng thử lại.'))
       .finally(() => setLoading(false))
-  }, [productId, apiBase])
+  }, [productId])
 
   /* ── Fetch related products (same category) ── */
   useEffect(() => {
     if (!product) return
-    axios
-      .get<Product[]>(`${apiBase}/data`)
-      .then((res) => {
-        const related = res.data
-          .filter((p) => p.id !== product.id && p.category === product.category)
-          .slice(0, 4)
-        setRelatedProducts(related)
+    fetchProducts({ pageSize: 4, categoryId: product.category?.id })
+      .then((related) => {
+        setRelatedProducts(related.items.filter(p => p.id !== product.id))
       })
       .catch(() => {/* silently ignore related fetch errors */})
-  }, [product, apiBase])
+  }, [product])
 
   /* ── Loading ── */
   if (loading) {
@@ -137,31 +131,31 @@ export default function ProductDetailPage() {
     )
   }
 
-  const hasDiscount = product.discountPrice < product.price
-  const displayPrice = hasDiscount ? product.discountPrice : product.price
+  const hasDiscount = product.discountPrice !== undefined && product.discountPrice !== null && product.discountPrice < product.basePrice
+  const displayPrice = hasDiscount ? product.discountPrice! : product.basePrice
   const mainImage = mainImgError
     ? 'https://via.placeholder.com/800x1000?text=No+Image'
-    : (product.images?.[0] ?? '')
+    : (product.images?.[0]?.url ?? 'https://via.placeholder.com/800x1000?text=No+Image')
 
   const handleAddToCart = () => {
     addItem({
-      id: product.id,
+      id: product.id.toString(), // Store expects string or we can update store later
       name: product.name,
       price: displayPrice,
-      imageUrl: product.images?.[0] ?? '',
+      imageUrl: product.images?.[0]?.url ?? '',
       size: selectedSize,
       color: selectedColor,
       quantity: 1,
     })
-    showToast(product.name, product.images?.[0] ?? '', displayPrice)
+    showToast(product.name, product.images?.[0]?.url ?? '', displayPrice)
   }
 
   const handleBuyNow = () => {
     addItem({
-      id: product.id,
+      id: product.id.toString(),
       name: product.name,
       price: displayPrice,
-      imageUrl: product.images?.[0] ?? '',
+      imageUrl: product.images?.[0]?.url ?? '',
       size: selectedSize,
       color: selectedColor,
       quantity: 1,
@@ -169,32 +163,25 @@ export default function ProductDetailPage() {
     navigate('/payment')
   }
 
+  const uniqueColors = [...new Set(product.variants?.map(v => v.color).filter(Boolean))] as string[]
+  const uniqueSizes = [...new Set(product.variants?.map(v => v.size).filter(Boolean))] as string[]
+
   return (
     <section className="w-full bg-background">
       <div className="max-w-[1220px] mx-auto px-4 md:px-8 py-6 md:py-10">
 
         {/* Breadcrumb */}
-        {product.breadcrumb?.length > 0 && (
-          <div className="mb-4 hidden md:block text-[11px] font-label font-semibold uppercase tracking-[0.25em] text-on-surface-variant/70">
-            <Link to="/" className="hover:text-primary transition-colors">
-              {product.breadcrumb[0]}
-            </Link>
-            {product.breadcrumb[1] && (
-              <>
-                <span className="mx-2">/</span>
-                <Link to="/collections" className="hover:text-primary transition-colors">
-                  {product.breadcrumb[1]}
-                </Link>
-              </>
-            )}
-            {product.breadcrumb[2] && (
-              <>
-                <span className="mx-2">/</span>
-                <span>{product.breadcrumb[2]}</span>
-              </>
-            )}
-          </div>
-        )}
+        <div className="mb-4 hidden md:block text-[11px] font-label font-semibold uppercase tracking-[0.25em] text-on-surface-variant/70">
+          <Link to="/" className="hover:text-primary transition-colors">
+            Trang chủ
+          </Link>
+          <span className="mx-2">/</span>
+          <Link to="/collections" className="hover:text-primary transition-colors">
+            Sản phẩm
+          </Link>
+          <span className="mx-2">/</span>
+          <span>{product.name}</span>
+        </div>
 
         <div className="grid gap-6 md:gap-10 lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-12 items-start">
 
@@ -211,7 +198,7 @@ export default function ProductDetailPage() {
             {product.images?.[1] && (
               <div className="hidden md:block overflow-hidden bg-surface-container-low">
                 <img
-                  src={product.images[1]}
+                  src={product.images[1]?.url}
                   alt={product.name}
                   className="w-full aspect-[4/5] object-cover object-center"
                 />
@@ -228,39 +215,39 @@ export default function ProductDetailPage() {
               {hasDiscount ? (
                 <div className="flex items-center gap-3 mt-2">
                   <span className="font-body text-[16px] md:text-[18px] font-semibold text-error">
-                    {formatVND(product.discountPrice)}
+                    {formatVND(product.discountPrice!)}
                   </span>
                   <span className="font-body text-[14px] text-on-surface-variant line-through">
-                    {formatVND(product.price)}
+                    {formatVND(product.basePrice)}
                   </span>
                 </div>
               ) : (
                 <p className="mt-1.5 md:mt-2 font-body text-[14px] md:text-[17px] text-on-surface-variant">
-                  {formatVND(product.price)}
+                  {formatVND(product.basePrice)}
                 </p>
               )}
             </div>
 
             {/* Colors */}
-            {product.colors?.length > 0 && (
+            {uniqueColors.length > 0 && (
               <div>
                 <div className="mb-3 font-label text-[10px] md:text-[11px] font-semibold uppercase tracking-[0.22em] text-on-surface-variant">
                   Màu sắc:{' '}
                   <span className="text-primary">
-                    {product.colors.find((c) => c.value === selectedColor)?.name}
+                    {selectedColor}
                   </span>
                 </div>
                 <div className="flex items-center gap-2.5 md:gap-3">
-                  {product.colors.map((color) => {
-                    const isActive = selectedColor === color.value
+                  {uniqueColors.map((color) => {
+                    const isActive = selectedColor === color
                     return (
                       <button
-                        key={color.value}
+                        key={color}
                         type="button"
-                        onClick={() => setSelectedColor(color.value)}
+                        onClick={() => setSelectedColor(color)}
                         className={`h-5 w-5 md:h-6 md:w-6 rounded-full border transition-all ${isActive ? 'border-primary ring-2 ring-primary/20 ring-offset-2 ring-offset-background' : 'border-[#d7d2cf]'}`}
-                        style={{ backgroundColor: color.value }}
-                        aria-label={color.name}
+                        style={{ backgroundColor: color }}
+                        aria-label={color}
                       />
                     )
                   })}
@@ -269,7 +256,7 @@ export default function ProductDetailPage() {
             )}
 
             {/* Sizes */}
-            {product.sizes?.length > 0 && (
+            {uniqueSizes.length > 0 && (
               <div>
                 <div className="mb-3 flex items-end justify-between gap-4">
                   <span className="font-label text-[10px] md:text-[11px] font-semibold uppercase tracking-[0.22em] text-on-surface-variant">
@@ -283,7 +270,7 @@ export default function ProductDetailPage() {
                   </button>
                 </div>
                 <div className="grid grid-cols-4 gap-2 md:gap-3">
-                  {product.sizes.map((size) => {
+                  {uniqueSizes.map((size) => {
                     const isActive = selectedSize === size
                     return (
                       <button
@@ -325,7 +312,7 @@ export default function ProductDetailPage() {
                 open={openPanel === 'description'}
                 onToggle={() => setOpenPanel(openPanel === 'description' ? 'fabric' : 'description')}
               >
-                {product.description}
+                {product.description || 'Chưa có mô tả cho sản phẩm này.'}
               </AccordionRow>
 
               <AccordionRow
@@ -333,7 +320,7 @@ export default function ProductDetailPage() {
                 open={openPanel === 'fabric'}
                 onToggle={() => setOpenPanel(openPanel === 'fabric' ? 'delivery' : 'fabric')}
               >
-                {product.fabric}
+                Cotton
               </AccordionRow>
 
               <AccordionRow
@@ -341,7 +328,7 @@ export default function ProductDetailPage() {
                 open={openPanel === 'delivery'}
                 onToggle={() => setOpenPanel(openPanel === 'delivery' ? 'description' : 'delivery')}
               >
-                {product.delivery}
+                Giao hàng 3-5 ngày
               </AccordionRow>
             </div>
           </aside>
@@ -367,7 +354,7 @@ export default function ProductDetailPage() {
                 <Link key={item.id} to={`/product/${item.id}`} className="group block">
                   <div className="overflow-hidden bg-surface-container-low">
                     <img
-                      src={item.images?.[0]}
+                      src={item.thumbnailUrl || item.imageUrl}
                       alt={item.name}
                       className="aspect-[3/4] w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                     />
@@ -377,7 +364,7 @@ export default function ProductDetailPage() {
                       {item.name}
                     </h3>
                     <p className="mt-0.5 md:mt-1 font-body text-[10px] md:text-[12px] text-on-surface-variant">
-                      {formatVND(item.discountPrice || item.price)}
+                      {formatVND(item.price)}
                     </p>
                   </div>
                 </Link>

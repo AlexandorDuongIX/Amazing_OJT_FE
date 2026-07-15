@@ -121,11 +121,11 @@ function CategoriesSection() {
             subtitle="Xem thêm"
             className="h-full"
           />
-          {/* Accessories */}
+          {/* Kids */}
           <CategoryCard
-            href="/collections/phu-kien"
+            href="/collections/tre-em"
             image={IMAGES.accessories}
-            title="Phụ kiện cao cấp"
+            title="Thời trang Trẻ em"
             subtitle="Xem thêm"
             className="h-full"
           />

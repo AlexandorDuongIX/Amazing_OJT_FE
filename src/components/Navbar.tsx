@@ -27,7 +27,7 @@ const navLinks: NavLink[] = [
   { label: 'Bộ sưu tập', to: '/collections', matchPrefix: '/collections' },
   { label: 'Nam', to: '/collections/nam', matchPrefix: '/collections/nam' },
   { label: 'Nữ', to: '/collections/nu', matchPrefix: '/collections/nu' },
-  { label: 'Phụ kiện', to: '/collections/phu-kien', matchPrefix: '/collections/phu-kien' },
+  { label: 'Trẻ em', to: '/collections/tre-em', matchPrefix: '/collections/tre-em' },
   { label: 'Blog', to: '/blogs', matchPrefix: '/blogs' },
 ]
 
@@ -41,8 +41,10 @@ export default function Navbar() {
   const location = useLocation()
   const { user, logout } = useAuthStore()
 
-  const isActive = (link: NavLink) =>
-    !!link.matchPrefix && location.pathname.startsWith(link.matchPrefix)
+  const isActive = (link: NavLink) => {
+    if (link.to === '/collections') return location.pathname === '/collections'
+    return !!link.matchPrefix && location.pathname.startsWith(link.matchPrefix)
+  }
 
   useEffect(() => {
     const handleScroll = () => {

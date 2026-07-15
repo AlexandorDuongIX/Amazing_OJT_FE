@@ -26,7 +26,7 @@ export default function CartToast() {
         {/* Thumbnail */}
         <div className="w-12 h-[60px] shrink-0 bg-surface-container-low rounded-[2px] overflow-hidden">
           <img
-            src={toast.productImage}
+            src={toast.productImage || 'https://via.placeholder.com/150'}
             alt={toast.productName}
             className="w-full h-full object-cover"
           />
