@@ -1,6 +1,6 @@
-
 import { useParams, Link } from 'react-router-dom'
-import { staticBlogs } from '../../utils/staticBlogs'
+import { staticBlogs } from './staticBlogs'
+import Button from '../../../components/Button'
 
 export default function BlogDetailPage() {
     const { id } = useParams()
@@ -13,19 +13,13 @@ export default function BlogDetailPage() {
 
     if (!blog) {
         return (
-            <div className="container mx-auto p-8">
-
-                <h1 className="text-3xl font-bold mb-4">
+            <div className="max-w-[1280px] mx-auto px-[80px] py-[96px]">
+                <h1 className="font-headline text-[36px] font-semibold text-primary mb-6">
                     Không tìm thấy bài viết
                 </h1>
-
-                <Link
-                    to="/blogs"
-                    className="bg-black text-white px-4 py-2 rounded"
-                >
+                <Button variant="outline" size="sm" href="/blogs">
                     Quay lại Blog
-                </Link>
-
+                </Button>
             </div>
         )
     }
@@ -35,44 +29,44 @@ export default function BlogDetailPage() {
         .slice(0, 3)
 
     return (
-        <div className="container mx-auto px-4 py-8">
+        <div className="max-w-[1280px] mx-auto px-[80px] py-[96px]">
 
             <Link
                 to="/blogs"
-                className="text-blue-600"
+                className="inline-flex items-center gap-2 font-label text-[13px] uppercase tracking-wider text-on-surface-variant hover:text-primary transition-colors mb-8"
             >
                 ← Quay lại danh sách Blog
             </Link>
 
-            <h1 className="text-4xl font-bold mt-4 mb-3">
+            <h1 className="font-headline text-[48px] font-semibold text-primary mt-4 mb-3">
                 {blog.title}
             </h1>
 
-            <p className="text-gray-500 mb-6">
+            <p className="font-label text-[12px] uppercase tracking-wider text-muted mb-8">
                 Ngày đăng: {blog.createdAt}
             </p>
 
             <img
                 src={blog.thumbnail}
                 alt={blog.title}
-                className="w-full h-[500px] object-cover rounded-xl mb-6"
+                className="w-full h-[500px] object-cover mb-8"
             />
 
-            <div className="bg-white rounded-xl shadow p-6">
+            <div className="bg-surface-container-lowest border border-outline-variant/30 p-8">
 
-                <h2 className="text-2xl font-semibold mb-3">
+                <h2 className="font-headline text-[24px] font-semibold text-primary mb-4">
                     Tóm tắt
                 </h2>
 
-                <p className="mb-6 text-gray-700">
+                <p className="font-body text-[16px] text-on-surface-variant mb-8 leading-relaxed">
                     {blog.summary}
                 </p>
 
-                <h2 className="text-2xl font-semibold mb-3">
+                <h2 className="font-headline text-[24px] font-semibold text-primary mb-4">
                     Nội dung
                 </h2>
 
-                <div className="leading-8 text-gray-800 whitespace-pre-wrap">
+                <div className="font-body text-[16px] leading-8 text-on-surface-variant whitespace-pre-wrap">
                     {blog.content}
                 </div>
 
@@ -80,9 +74,9 @@ export default function BlogDetailPage() {
 
             {relatedBlogs.length > 0 && (
 
-                <div className="mt-10">
+                <div className="mt-16">
 
-                    <h2 className="text-3xl font-bold mb-5">
+                    <h2 className="font-headline text-[32px] font-semibold text-primary mb-8">
                         Bài viết liên quan
                     </h2>
 
@@ -92,7 +86,7 @@ export default function BlogDetailPage() {
 
                             <div
                                 key={item.id}
-                                className="bg-white rounded-xl shadow overflow-hidden"
+                                className="bg-surface-container-lowest border border-outline-variant/30 shadow-sm overflow-hidden hover:shadow-md transition-shadow"
                             >
                                 <img
                                     src={item.thumbnail}
@@ -100,15 +94,15 @@ export default function BlogDetailPage() {
                                     className="w-full h-48 object-cover"
                                 />
 
-                                <div className="p-4">
+                                <div className="p-5">
 
-                                    <h3 className="font-bold mb-2">
+                                    <h3 className="font-headline text-[18px] font-semibold text-primary mb-3">
                                         {item.title}
                                     </h3>
 
                                     <Link
                                         to={`/blog/${item.id}`}
-                                        className="text-blue-600"
+                                        className="font-label text-[12px] uppercase tracking-wider text-on-surface-variant hover:text-primary transition-colors"
                                     >
                                         Đọc tiếp →
                                     </Link>

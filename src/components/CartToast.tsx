@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { useCartStore } from '../store/cartStore'
+import { useCartStore } from '../pages/customer/cart/cartStore'
 
 const formatVND = (amount: number) => amount.toLocaleString('vi-VN') + ' ₫'
 

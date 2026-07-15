@@ -7,7 +7,7 @@ interface OrderFilterTabsProps {
 
 export default function OrderFilterTabs({ activeTab, onTabChange }: OrderFilterTabsProps) {
   return (
-    <div className="bg-white border-b border-divider">
+    <div className="bg-surface-container-lowest border-b border-divider">
       <div className="flex gap-8 pt-4 px-6 overflow-x-auto">
         {TABS.map(tab => (
           <button

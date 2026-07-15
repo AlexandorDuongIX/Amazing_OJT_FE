@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import axios from 'axios'
-import type { Product } from '../../types/product'
-import { useCartStore } from '../../store/cartStore'
+import type { Product } from '../../../types/product'
+import { useCartStore } from '../cart/cartStore'
 
 /* ---------- Helpers ---------- */
 const formatVND = (amount: number) => amount.toLocaleString('vi-VN') + ' ₫'

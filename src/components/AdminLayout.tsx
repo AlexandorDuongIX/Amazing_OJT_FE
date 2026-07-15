@@ -1,63 +1,74 @@
 import { useEffect, useRef, useState, type ComponentType, type ReactNode } from 'react'
 import {
+  BarChart3,
   BookOpenText,
   Boxes,
   House,
-  Megaphone,
   Menu,
   ShoppingBag,
   TicketPercent,
   Users,
+  Warehouse,
   X,
 } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 
+type Role = 'admin' | 'staff'
+
 interface AdminLayoutProps {
   children: ReactNode
+  role?: Role
 }
 
-interface AdminLink {
+interface SidebarLink {
   label: string
   href: string
   icon: ComponentType<{ size?: number; strokeWidth?: number }>
 }
 
-const links: AdminLink[] = [
-  { label: 'Dashboard', href: '/admin', icon: House },
-  { label: 'Products', href: '/admin/inventory', icon: Boxes },
+function getLinks(role: Role, basePath: string): SidebarLink[] {
+  const shared: SidebarLink[] = [
+    { label: 'Dashboard', href: basePath, icon: House },
+    { label: 'Products', href: `${basePath}/products`, icon: Boxes },
+    { label: 'Inventory', href: `${basePath}/inventory`, icon: Warehouse },
+    { label: 'Customers', href: `${basePath}/customers`, icon: Users },
+    { label: 'Orders', href: `${basePath}/orders`, icon: ShoppingBag },
+    { label: 'Promotions', href: `${basePath}/promotions`, icon: TicketPercent },
+    { label: 'Content Management', href: `${basePath}/content`, icon: BookOpenText },
+  ]
 
-  { label: 'Customers', href: '/admin/customers', icon: Users },
-  { label: 'Orders', href: '/admin/orders', icon: ShoppingBag },
-  { label: 'Marketing', href: '/admin/marketing', icon: Megaphone },
-  { label: 'Promotions', href: '/admin/promotions', icon: TicketPercent },
-const sidebarLinks: SidebarLink[] = [
-  { label: 'Dashboard', href: '/admin', icon: 'dashboard' },
-  { label: 'Inventory', href: '/admin/inventory', icon: 'inventory_2' },
-  { label: 'Customers', href: '/admin/customers', icon: 'group' },
-  { label: 'Orders', href: '/admin/orders', icon: 'shopping_bag' },
-  { label: 'Content Management', href: '/admin/content', icon: 'article' },
-  { label: 'Reports', href: '/admin/reports', icon: 'analytics' },
-  { label: 'Staff', href: '/admin/staff', icon: 'badge' },
-]
+  if (role === 'admin') {
+    shared.push({ label: 'Reports', href: `${basePath}/reports`, icon: BarChart3 })
+  }
+
+  return shared
+}
 
 function isLinkActive(pathname: string, href: string) {
-  if (href === '/admin') return pathname === href
+  if (href === '/admin' || href === '/staff') return pathname === href
   return pathname === href || pathname.startsWith(`${href}/`)
 }
 
-function AdminNavigation({ onNavigate }: { onNavigate?: () => void }) {
+const roleConfig = {
+  admin: { basePath: '/admin', subtitle: 'Luxury Admin', badge: 'Super Admin' },
+  staff: { basePath: '/staff', subtitle: 'Luxury Staff', badge: 'Staff' },
+}
+
+function AdminNavigation({ onNavigate, role = 'admin' }: { onNavigate?: () => void; role?: Role }) {
   const { pathname } = useLocation()
+  const config = roleConfig[role]
+  const links = getLinks(role, config.basePath)
 
   return (
     <div className="flex h-full flex-col bg-[#1a1c1c] text-white">
       <div className="px-8 pb-10 pt-8 text-center">
-        <Link to="/admin" onClick={onNavigate} className="inline-flex flex-col items-center focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#c6a84a]">
+        <Link to={config.basePath} onClick={onNavigate} className="inline-flex flex-col items-center focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#c6a84a]">
           <span className="font-serif text-lg font-bold uppercase tracking-[-0.05em]">Amazing</span>
-          <span className="mt-1 text-xs uppercase tracking-[0.22em] text-[#838484]">Luxury Admin</span>
+          <span className="mt-1 text-xs uppercase tracking-[0.22em] text-[#838484]">{config.subtitle}</span>
         </Link>
       </div>
 
-      <nav aria-label="Admin navigation" className="flex-1">
+      <nav aria-label={`${role} navigation`} className="flex-1">
         <ul className="space-y-1">
           {links.map((item) => {
             const active = isLinkActive(pathname, item.href)
@@ -88,7 +99,7 @@ function AdminNavigation({ onNavigate }: { onNavigate?: () => void }) {
           <div className="grid size-10 place-items-center bg-white/10 font-serif text-sm">AV</div>
           <div>
             <p className="text-sm font-bold">Alexander V.</p>
-            <p className="text-[11px] uppercase tracking-[0.08em] text-[#838484]">Super Admin</p>
+            <p className="text-[11px] uppercase tracking-[0.08em] text-[#838484]">{config.badge}</p>
           </div>
         </div>
       </div>
@@ -96,7 +107,7 @@ function AdminNavigation({ onNavigate }: { onNavigate?: () => void }) {
   )
 }
 
-export default function AdminLayout({ children }: AdminLayoutProps) {
+export default function AdminLayout({ children, role = 'admin' }: AdminLayoutProps) {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
 
@@ -113,7 +124,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   return (
     <div className="min-h-screen bg-[#fbf9f9] text-[#1b1c1c]">
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 border-r border-white/10 lg:block">
-        <AdminNavigation />
+        <AdminNavigation role={role} />
       </aside>
 
       <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-[#c4c7c7]/40 bg-[#fbf9f9]/95 px-5 backdrop-blur lg:hidden">
@@ -140,7 +151,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           <aside
             role="dialog"
             aria-modal="true"
-            aria-label="Admin navigation"
+            aria-label={`${role} navigation`}
             className="relative h-full w-[min(88vw,20rem)] shadow-2xl"
           >
             <button
@@ -152,12 +163,16 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             >
               <X size={22} />
             </button>
-            <AdminNavigation onNavigate={() => setDrawerOpen(false)} />
+            <AdminNavigation role={role} onNavigate={() => setDrawerOpen(false)} />
           </aside>
         </div>
       ) : null}
 
-      <main className="min-h-screen lg:ml-72">{children}</main>
+      <main className="min-h-screen lg:ml-72 p-5 sm:p-8 lg:p-10">
+        <div className="mx-auto max-w-[1440px]">
+          {children}
+        </div>
+      </main>
     </div>
   )
 }

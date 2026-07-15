@@ -367,21 +367,18 @@ export default function InventoryPage() {
   return (
     <div className="space-y-8">
       {/* ── Page Header ── */}
-      <div className="flex items-start justify-between">
+      <header className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between mb-8">
         <div>
-          <h2 className="font-headline font-bold text-[32px] tracking-tight text-on-surface">
-            Quản lý Sản phẩm
-          </h2>
-          <p className="font-label uppercase tracking-widest text-caption text-on-surface-variant/60 mt-1">
-            Trang chủ &nbsp;/&nbsp;{" "}
-            <span className="text-on-surface-variant">Inventory</span>
+          <h1 className="font-serif text-4xl font-medium leading-tight text-black">Quản lý Kho hàng</h1>
+          <p className="mt-2 text-[11px] uppercase tracking-[0.15em] text-[#444748]">
+            Trang chủ &nbsp;/&nbsp; <strong className="text-black">INVENTORY</strong>
           </p>
         </div>
         <button className="flex items-center gap-2 bg-on-surface text-surface px-6 py-3 font-label uppercase tracking-widest text-label-sm hover:bg-on-surface/80 transition-colors">
           <span className="material-symbols-outlined text-[18px]">add</span>
           Thêm sản phẩm mới
         </button>
-      </div>
+      </header>
 
       {/* ── Stats Cards ── */}
       <div className="flex border border-outline-variant/30 divide-x divide-outline-variant/30">

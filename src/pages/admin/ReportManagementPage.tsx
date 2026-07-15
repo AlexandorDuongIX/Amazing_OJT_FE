@@ -203,10 +203,15 @@ export default function ReportManagementPage() {
   return (
     <div className="flex flex-col gap-0">
       {/* ===== Header ===== */}
+      <header className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between mb-8">
+        <div>
+          <h1 className="font-serif text-4xl font-medium leading-tight text-black">Báo cáo & Thống kê</h1>
+          <p className="mt-2 text-[11px] uppercase tracking-[0.15em] text-[#444748]">
+            Trang chủ &nbsp;/&nbsp; <strong className="text-black">REPORTS</strong>
+          </p>
+        </div>
+      </header>
       <section className="mb-12">
-        <h2 className="text-display-lg-mobile md:text-headline-lg font-bold text-primary mb-4">
-          Quản lý Báo cáo
-        </h2>
         <p className="font-body text-body-md text-on-surface-variant max-w-2xl">
           Hỗ trợ xuất dữ liệu phục vụ thống kê, kế toán và quản lý. Chọn loại báo cáo, khoảng thời gian
           và xem trước dữ liệu trước khi xuất.

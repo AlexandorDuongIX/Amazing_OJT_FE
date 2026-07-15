@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useCartStore } from '../../../store/cartStore'
-import type { CartItem } from '../../../types/cart'
+import { useCartStore } from './cartStore'
+import type { CartItem } from './types'
 import CartPageItem from './CartPageItem'
 import CartSummary from './CartSummary'
 

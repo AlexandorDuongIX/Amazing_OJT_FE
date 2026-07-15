@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { useCartStore } from '../store/cartStore'
+import { useCartStore } from '../pages/customer/cart/cartStore'
 import MiniCartItem from './MiniCartItem'
 
 const formatVND = (amount: number) => amount.toLocaleString('vi-VN') + ' ₫'

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { CartItem } from '../../../types/cart'
+import type { CartItem } from './types'
 import ConfirmDialog from '../../../components/ConfirmDialog'
 
 const formatVND = (amount: number) => amount.toLocaleString('vi-VN') + ' ₫'

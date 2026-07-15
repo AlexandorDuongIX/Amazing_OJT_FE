@@ -139,9 +139,8 @@ export default function ProductFormPage() {
 
   const loading = categoriesLoading || detailsLoading
   return (
-    <div className="px-5 py-8 sm:px-8 lg:px-10 lg:py-12">
-      <div className="mx-auto max-w-5xl space-y-7">
-        <header>
+    <div className="space-y-7 max-w-5xl">
+      <header>
           <Link to="/admin/inventory" className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.14em] text-[#444748] hover:text-black"><ArrowLeft size={16} /> Back to inventory</Link>
           <h1 className="mt-5 text-4xl font-medium">{mode === 'create' ? 'Create Product' : 'Edit Product'}</h1>
           <p className="mt-2 text-sm text-[#444748]">{mode === 'create' ? 'Add catalogue details, creation-only options, images, variants, and initial stock.' : 'Update the fields supported by the current product API without changing creation-only data.'}</p>
@@ -169,7 +168,6 @@ export default function ProductFormPage() {
             onSubmit={submit}
           />
         ) : null}
-      </div>
     </div>
   )
 }

@@ -1,5 +1,5 @@
 import type { Order } from '@/types/order'
-import OrderStatusBadge from './OrderStatusBadge'
+import OrderStatusBadge from '../../../components/OrderStatusBadge'
 
 interface OrderCardProps {
   order: Order
@@ -8,7 +8,7 @@ interface OrderCardProps {
 
 export default function OrderCard({ order, onViewDetail }: OrderCardProps) {
   return (
-    <div className="bg-white border border-divider rounded-[10px] p-[29px] flex flex-col gap-6 shadow-[0px_10px_15px_rgba(0,0,0,0.04)]">
+    <div className="bg-surface-container-lowest border border-divider rounded-[10px] p-[29px] flex flex-col gap-6 shadow-[0px_10px_15px_rgba(0,0,0,0.04)]">
       {/* Header */}
       <div className="flex justify-between items-start border-b border-divider pb-4">
         <div className="flex flex-col gap-1">

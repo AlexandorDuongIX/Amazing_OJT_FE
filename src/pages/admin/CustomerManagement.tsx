@@ -380,19 +380,19 @@ export default function CustomerManagement() {
 
   return (
     <div>
-      {/* Page Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-[24px] font-bold text-[#1A1A1A]">Customer Management</h1>
-          <p className="text-[13px] text-[#888888] mt-1">
-            View, search and manage your store's customers
-          </p>
-        </div>
-        <button className="flex items-center gap-2 px-5 py-3 bg-[#C6A96B] text-black text-[12px] font-semibold uppercase tracking-widest hover:opacity-90 transition-opacity">
+        {/* Page Header */}
+        <header className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between mb-8">
+          <div>
+            <h1 className="font-serif text-4xl font-medium leading-tight text-black">Quản lý Khách hàng</h1>
+            <p className="mt-2 text-[11px] uppercase tracking-[0.15em] text-[#444748]">
+              Trang chủ &nbsp;/&nbsp; <strong className="text-black">CUSTOMERS</strong>
+            </p>
+          </div>
+          <button className="flex items-center gap-2 px-5 py-3 bg-[#C6A96B] text-black text-[12px] font-semibold uppercase tracking-widest hover:opacity-90 transition-opacity">
           <span className="material-symbols-outlined text-[18px]">person_add</span>
           Add Customer
         </button>
-      </div>
+      </header>
 
       {/* Stat Cards */}
       <div className="grid grid-cols-4 gap-4 mb-6">

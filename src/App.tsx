@@ -3,16 +3,16 @@ import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-do
 
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
-import HomePage from './pages/customer/HomePage'
+import HomePage from './pages/customer/home/HomePage'
 
-import ProductListPage from './pages/customer/ProductListPage'
-import ProductDetailPage from './pages/customer/ProductDetailPage'
+import ProductListPage from './pages/customer/products/ProductListPage'
+import ProductDetailPage from './pages/customer/products/ProductDetailPage'
 import CartPage from './pages/customer/cart/CartPage'
-import Payment from './pages/customer/Payment'
-import OrderSuccessPage from './pages/customer/OrderSucessPage'
+import Payment from './pages/customer/checkout/Payment'
+import OrderSuccessPage from './pages/customer/checkout/OrderSuccessPage'
 import OrderHistoryPage from './pages/customer/order-history'
-import { LoginPage, RegisterPage } from './pages/customer/AuthPages'
-import WishlistPage from './pages/customer/wishlist'
+import { LoginPage, RegisterPage } from './pages/customer/auth/AuthPages'
+import WishlistPage from './pages/customer/wishlist/WishlistPage'
 
 import AdminLayout from './components/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
@@ -20,13 +20,12 @@ import ContentManagementPage from './pages/admin/ContentManagementPage'
 import CustomerManagement from './pages/admin/CustomerManagement'
 import AdminOrders from './pages/admin/order_management/AdminOrders/AdminOrders'
 import ReportManagementPage from './pages/admin/ReportManagementPage'
-import InventoryPage from './pages/admin/InventoryPage'
 
 import PromotionManagement from './pages/admin/promotions/PromotionManagement'
-import BlogListPage from './pages/customer/BlogListPage'
-import BlogDetailPage from './pages/customer/BlogDetailPage'
+import BlogListPage from './pages/customer/blog/BlogListPage'
+import BlogDetailPage from './pages/customer/blog/BlogDetailPage'
 import ProductManagementPage from './pages/admin/products/ProductManagementPage'
-import ProductFormPage from './pages/admin/products/ProductFormPage'
+import InventoryPage from './pages/admin/InventoryPage'
 
 /* ── Scroll to top on every route change ── */
 function ScrollToTop() {
@@ -52,26 +51,22 @@ function CustomerLayout({ children }: { children?: React.ReactNode }) {
 function RoleSwitcher() {
   const location = useLocation()
   const isAdmin = location.pathname.startsWith('/admin')
+  const isStaff = location.pathname.startsWith('/staff')
+  const isCustomer = !isAdmin && !isStaff
+
+  const btnBase = 'px-4 py-2 rounded-full font-label text-[12px] font-bold uppercase tracking-wider transition-all duration-300'
+  const btnActive = 'bg-primary text-on-primary shadow-md'
+  const btnInactive = 'text-on-surface-variant hover:text-primary'
 
   return (
     <div role="group" aria-label="Role switcher" className="fixed bottom-6 right-6 z-[9999] hidden items-center gap-1 rounded-full border border-outline-variant/30 bg-background/90 p-1.5 shadow-2xl backdrop-blur-md sm:flex">
-      <Link
-        to="/"
-        className={`px-4 py-2 rounded-full font-label text-[12px] font-bold uppercase tracking-wider transition-all duration-300 ${!isAdmin
-            ? 'bg-primary text-on-primary shadow-md'
-            : 'text-on-surface-variant hover:text-primary'
-          }`}
-      >
+      <Link to="/" className={`${btnBase} ${isCustomer ? btnActive : btnInactive}`}>
         Khách hàng
       </Link>
-
-      <Link
-        to="/admin"
-        className={`px-4 py-2 rounded-full font-label text-[12px] font-bold uppercase tracking-wider transition-all duration-300 ${isAdmin
-            ? 'bg-primary text-on-primary shadow-md'
-            : 'text-on-surface-variant hover:text-primary'
-          }`}
-      >
+      <Link to="/staff" className={`${btnBase} ${isStaff ? btnActive : btnInactive}`}>
+        Staff
+      </Link>
+      <Link to="/admin" className={`${btnBase} ${isAdmin ? btnActive : btnInactive}`}>
         Admin
       </Link>
     </div>
@@ -217,64 +212,14 @@ function App() {
               </AdminLayout>
             }
           />
-
           <Route
-
-            path="/admin/promotions"
-            element={
-              <AdminLayout>
-                <PromotionManagement />
-              </AdminLayout>
-            }
-          />
-          <Route
-            path="/admin/inventory"
+            path="/admin/products"
             element={
               <AdminLayout>
                 <ProductManagementPage />
               </AdminLayout>
             }
           />
-          <Route
-            path="/admin/inventory/new"
-            element={
-              <AdminLayout>
-                <ProductFormPage />
-              </AdminLayout>
-            }
-          />
-          <Route
-            path="/admin/inventory/:productId/edit"
-            element={
-              <AdminLayout>
-                <ProductFormPage />
-
-            path="/admin/content"
-            element={
-              <AdminLayout>
-                <ContentManagementPage />
-              </AdminLayout>
-            }
-          />
-
-          <Route
-            path="/admin/customers"
-            element={
-              <AdminLayout>
-                <CustomerManagement />
-              </AdminLayout>
-            }
-          />
-          
-          <Route     
-            path="/admin/orders"
-            element={
-              <AdminLayout>
-                <AdminOrders />
-              </AdminLayout>
-            }
-          />
-
           <Route
             path="/admin/inventory"
             element={
@@ -283,12 +228,102 @@ function App() {
               </AdminLayout>
             }
           />
-
+          <Route
+            path="/admin/promotions"
+            element={
+              <AdminLayout>
+                <PromotionManagement />
+              </AdminLayout>
+            }
+          />
+          <Route
+            path="/admin/content"
+            element={
+              <AdminLayout>
+                <ContentManagementPage />
+              </AdminLayout>
+            }
+          />
+          <Route
+            path="/admin/customers"
+            element={
+              <AdminLayout>
+                <CustomerManagement />
+              </AdminLayout>
+            }
+          />
+          <Route
+            path="/admin/orders"
+            element={
+              <AdminLayout>
+                <AdminOrders />
+              </AdminLayout>
+            }
+          />
           <Route
             path="/admin/reports"
             element={
               <AdminLayout>
                 <ReportManagementPage />
+              </AdminLayout>
+            }
+          />
+
+          {/* Staff Routes (same as Admin, without Reports) */}
+
+          <Route
+            path="/staff"
+            element={
+              <AdminLayout role="staff">
+                <AdminDashboard />
+              </AdminLayout>
+            }
+          />
+          <Route
+            path="/staff/products"
+            element={
+              <AdminLayout role="staff">
+                <ProductManagementPage />
+              </AdminLayout>
+            }
+          />
+          <Route
+            path="/staff/inventory"
+            element={
+              <AdminLayout role="staff">
+                <InventoryPage />
+              </AdminLayout>
+            }
+          />
+          <Route
+            path="/staff/promotions"
+            element={
+              <AdminLayout role="staff">
+                <PromotionManagement />
+              </AdminLayout>
+            }
+          />
+          <Route
+            path="/staff/content"
+            element={
+              <AdminLayout role="staff">
+                <ContentManagementPage />
+              </AdminLayout>
+            }
+          />
+          <Route
+            path="/staff/customers"
+            element={
+              <AdminLayout role="staff">
+                <CustomerManagement />
+              </AdminLayout>
+            }
+          />
+          <Route
+            path="/staff/orders"
+            element={
+              <AdminLayout role="staff">
+                <AdminOrders />
               </AdminLayout>
             }
           />

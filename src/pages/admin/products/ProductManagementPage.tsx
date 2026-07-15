@@ -15,9 +15,8 @@ export default function ProductManagementPage() {
   const page = useProductManagement()
 
   return (
-    <div className="px-5 py-8 sm:px-8 lg:px-10 lg:py-12">
-      <div className="mx-auto max-w-[1440px] space-y-8">
-        <header className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+    <div className="space-y-8">
+      <header className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h1 className="font-serif text-4xl font-medium leading-tight text-black">Quản lý Sản phẩm</h1>
             <p className="mt-2 text-[11px] uppercase tracking-[0.15em] text-[#444748]">Trang chủ &nbsp;/&nbsp; <strong className="text-black">Inventory</strong></p>
@@ -75,7 +74,7 @@ export default function ProductManagementPage() {
           <p>© 2026 Amazing Fashion. All rights reserved.</p>
           <p>Privacy Policy &nbsp;&nbsp; Terms of Service &nbsp;&nbsp; Support</p>
         </footer>
-      </div>
+      
       {page.deleteTarget ? <DeleteProductDialog product={page.deleteTarget} busy={page.busyProductId === page.deleteTarget.id} onClose={() => page.setDeleteTarget(undefined)} onConfirm={() => void page.confirmDelete()} /> : null}
       {page.stockTarget ? <StockDialog product={page.stockTarget.product} summary={page.stockTarget.summary} busy={page.busyProductId === page.stockTarget.product.id} onClose={() => page.setStockTarget(undefined)} onConfirm={(quantity) => void page.setInStock(quantity)} /> : null}
     </div>

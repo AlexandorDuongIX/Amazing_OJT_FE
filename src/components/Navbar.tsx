@@ -3,8 +3,8 @@ import { Link, useLocation } from 'react-router-dom'
 import Logo from './Logo'
 import MiniCart from './MiniCart'
 import CartToast from './CartToast'
-import { useCartStore } from '../store/cartStore'
-import { useAuthStore } from '../store/authStore'
+import { useCartStore } from '../pages/customer/cart/cartStore'
+import { useAuthStore } from '../pages/customer/auth/authStore'
 
 /* ============================================================
    Navbar Component — AMAZING Design System

@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect } from 'react'
 import axios from 'axios'
-import { useCartStore } from '../../store/cartStore'
+import { useCartStore } from '../cart/cartStore'
+import Loading from '../../../components/Loading'
 
 type SortOption = 'default' | 'price-asc' | 'price-desc'
 
@@ -113,11 +114,7 @@ export default function WishlistPage() {
     }
 
     if (loading) {
-        return (
-            <div className="flex items-center justify-center min-h-[400px]">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-            </div>
-        )
+        return <Loading variant="fullscreen" text="Đang tải sản phẩm..." />
     }
 
     return (

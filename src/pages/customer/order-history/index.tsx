@@ -4,7 +4,7 @@ import type { Order } from '@/types/order'
 import { MOCK_ORDERS } from './mockOrders'
 import OrderCard from './OrderCard'
 import OrderFilterTabs from './OrderFilterTabs'
-import OrderPagination from './OrderPagination'
+import OrderPagination from '../../../components/Pagination'
 
 const PAGE_SIZE = 6
 

@@ -305,14 +305,16 @@ export default function ContentManagementPage() {
 
   return (
     <div className="flex flex-col gap-10">
+      <header className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between mb-8">
+        <div>
+          <h1 className="font-serif text-4xl font-medium leading-tight text-black">Quản lý Nội dung</h1>
+          <p className="mt-2 text-[11px] uppercase tracking-[0.15em] text-[#444748]">
+            Trang chủ &nbsp;/&nbsp; <strong className="text-black">CONTENT</strong>
+          </p>
+        </div>
+      </header>
       <section className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
         <div>
-          <p className="font-label text-caption uppercase tracking-[0.3em] text-on-surface-variant mb-4">
-            Admin / Content Management
-          </p>
-          <h2 className="text-display-lg-mobile md:text-headline-lg font-bold text-primary mb-4">
-            Quản lý nội dung hiển thị trên website
-          </h2>
           <p className="max-w-3xl font-body text-body-md text-on-surface-variant leading-relaxed">
             Quản lý bài viết blog, banner trang chủ, hình ảnh và lịch hiển thị để đồng bộ thông điệp
             thương hiệu trên toàn site.

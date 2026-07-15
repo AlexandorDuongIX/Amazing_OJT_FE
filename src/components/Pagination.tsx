@@ -24,8 +24,8 @@ export default function OrderPagination({ currentPage, totalPages, onPageChange 
           onClick={() => onPageChange(page)}
           className={`w-8 h-8 flex items-center justify-center rounded-[4px] font-label text-[14px] cursor-pointer transition-colors ${
             page === currentPage
-              ? 'bg-gold text-white'
-              : 'bg-white border border-divider text-on-background hover:bg-surface-container'
+              ? 'bg-gold text-on-primary'
+              : 'bg-surface-container-lowest border border-divider text-on-background hover:bg-surface-container'
           }`}
           aria-label={`Trang ${page}`}
           aria-current={page === currentPage ? 'page' : undefined}

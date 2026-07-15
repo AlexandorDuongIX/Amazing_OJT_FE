@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import axios from 'axios'
-import { useCartStore } from '../../store/cartStore'
-import type { Product } from '../../types/product'
+import { useCartStore } from '../cart/cartStore'
+import type { Product } from '../../../types/product'
 
 /* ============================================================
    ProductListPage — AMAZING Clothing Shop (Customer Page)

@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { create } from 'zustand';
-import type { Promotion } from '../../store/promotionStorage';
+import type { Promotion } from './promotionData';
 import { useNavigate } from "react-router-dom";
 import { Info } from "lucide-react";
-import Navbar from "../../components/Navbar";
-import Footer from "../../components/Footer";
-import Button from "../../components/Button";
+import Navbar from "../../../components/Navbar";
+import Footer from "../../../components/Footer";
+import Button from "../../../components/Button";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface SavedAddress {

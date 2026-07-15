@@ -104,8 +104,13 @@ export default function AdminOrders() {
 
   return (
     <div className="flex flex-col gap-8">
-      <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
-        <h2 className="text-headline-md font-bold text-primary">Quản lý đơn hàng</h2>
+      <header className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between mb-8">
+        <div className="shrink-0">
+          <h1 className="font-serif text-4xl font-medium leading-tight text-black whitespace-nowrap">Quản lý Đơn hàng</h1>
+          <p className="mt-2 text-[11px] uppercase tracking-[0.15em] text-[#444748]">
+            Trang chủ &nbsp;/&nbsp; <strong className="text-black">ORDERS</strong>
+          </p>
+        </div>
         <div className="flex flex-wrap gap-3">
           <OrderSearchInput value={searchQuery} onChange={handleSearchChange} />
           <OrderFilterBar value={statusFilter} onChange={handleStatusFilterChange} />
@@ -113,7 +118,7 @@ export default function AdminOrders() {
           <OrderSortSelect value={sortBy} onChange={handleSortChange} />
           <OrderResetFiltersButton onReset={handleResetFilters} />
         </div>
-      </div>
+      </header>
 
       <OrderTable
         orders={pagedOrders}

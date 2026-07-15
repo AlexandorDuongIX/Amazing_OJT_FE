@@ -222,15 +222,15 @@ export default function AdminDashboard() {
   const [_timePeriod, setTimePeriod] = useState('this-month')
 
   return (
-    <div className="flex flex-col gap-0">
-      {/* ===== Welcome Header ===== */}
-      <section className="flex flex-col md:flex-row justify-between items-start md:items-end gap-12 mb-12">
-        <div>
-          <h2 className="text-display-lg-mobile md:text-headline-lg font-bold text-primary mb-6">
-            Chào mừng trở lại, Admin
-          </h2>
-
-        </div>
+      <div className="flex flex-col gap-0">
+        {/* ===== Welcome Header ===== */}
+        <header className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between mb-8">
+          <div>
+            <h1 className="font-serif text-4xl font-medium leading-tight text-black uppercase">CHÀO MỪNG TRỞ LẠI, ADMIN</h1>
+            <p className="mt-2 text-[11px] uppercase tracking-[0.15em] text-[#444748]">
+              Trang chủ &nbsp;/&nbsp; <strong className="text-black">DASHBOARD</strong>
+            </p>
+          </div>
         <div className="flex items-center gap-4 bg-surface-container-low px-4 py-2 border border-outline-variant">
           <span className="material-symbols-outlined text-secondary">calendar_today</span>
           <select
@@ -245,7 +245,7 @@ export default function AdminDashboard() {
             <option value="quarter">Quý này</option>
           </select>
         </div>
-      </section>
+      </header>
 
       {/* ===== KPI Cards Grid ===== */}
       <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
