@@ -28,7 +28,7 @@ const navLinks: NavLink[] = [
   { label: 'Nam', to: '/collections/nam', matchPrefix: '/collections/nam' },
   { label: 'Nữ', to: '/collections/nu', matchPrefix: '/collections/nu' },
   { label: 'Phụ kiện', to: '/collections/phu-kien', matchPrefix: '/collections/phu-kien' },
-  { label: 'Blog', to: '#' },
+  { label: 'Blog', to: '/blogs', matchPrefix: '/blogs' },
 ]
 
 export default function Navbar() {

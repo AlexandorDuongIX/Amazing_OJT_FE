@@ -22,6 +22,12 @@ import AdminOrders from './pages/admin/order_management/AdminOrders/AdminOrders'
 import ReportManagementPage from './pages/admin/ReportManagementPage'
 import InventoryPage from './pages/admin/InventoryPage'
 
+import PromotionManagement from './pages/admin/promotions/PromotionManagement'
+import BlogListPage from './pages/customer/BlogListPage'
+import BlogDetailPage from './pages/customer/BlogDetailPage'
+import ProductManagementPage from './pages/admin/products/ProductManagementPage'
+import ProductFormPage from './pages/admin/products/ProductFormPage'
+
 /* ── Scroll to top on every route change ── */
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -48,7 +54,7 @@ function RoleSwitcher() {
   const isAdmin = location.pathname.startsWith('/admin')
 
   return (
-    <div className="fixed bottom-6 right-6 z-[9999] bg-background/90 border border-outline-variant/30 rounded-full shadow-2xl p-1.5 flex items-center gap-1 backdrop-blur-md">
+    <div role="group" aria-label="Role switcher" className="fixed bottom-6 right-6 z-[9999] hidden items-center gap-1 rounded-full border border-outline-variant/30 bg-background/90 p-1.5 shadow-2xl backdrop-blur-md sm:flex">
       <Link
         to="/"
         className={`px-4 py-2 rounded-full font-label text-[12px] font-bold uppercase tracking-wider transition-all duration-300 ${!isAdmin
@@ -111,6 +117,24 @@ function App() {
             element={
               <CustomerLayout>
                 <ProductListPage />
+              </CustomerLayout>
+            }
+          />
+
+          <Route
+            path="/blogs"
+            element={
+              <CustomerLayout>
+                <BlogListPage />
+              </CustomerLayout>
+            }
+          />
+
+          <Route
+            path="/blog/:id"
+            element={
+              <CustomerLayout>
+                <BlogDetailPage />
               </CustomerLayout>
             }
           />
@@ -195,6 +219,36 @@ function App() {
           />
 
           <Route
+
+            path="/admin/promotions"
+            element={
+              <AdminLayout>
+                <PromotionManagement />
+              </AdminLayout>
+            }
+          />
+          <Route
+            path="/admin/inventory"
+            element={
+              <AdminLayout>
+                <ProductManagementPage />
+              </AdminLayout>
+            }
+          />
+          <Route
+            path="/admin/inventory/new"
+            element={
+              <AdminLayout>
+                <ProductFormPage />
+              </AdminLayout>
+            }
+          />
+          <Route
+            path="/admin/inventory/:productId/edit"
+            element={
+              <AdminLayout>
+                <ProductFormPage />
+
             path="/admin/content"
             element={
               <AdminLayout>
