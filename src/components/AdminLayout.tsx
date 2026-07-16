@@ -10,8 +10,11 @@ import {
   Users,
   Warehouse,
   X,
+  LogOut,
 } from 'lucide-react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import ProtectedRoute from './ProtectedRoute'
+import { useAuthStore } from '../pages/customer/auth/authStore'
 
 type Role = 'admin' | 'staff'
 
@@ -56,8 +59,19 @@ const roleConfig = {
 
 function AdminNavigation({ onNavigate, role = 'admin' }: { onNavigate?: () => void; role?: Role }) {
   const { pathname } = useLocation()
+  const navigate = useNavigate()
   const config = roleConfig[role]
   const links = getLinks(role, config.basePath)
+  const { user, logout } = useAuthStore()
+
+  const avatarInitials = user?.name
+    ? user.name.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()
+    : 'AV'
+
+  const handleLogout = () => {
+    logout()
+    navigate('/login')
+  }
 
   return (
     <div className="flex h-full flex-col bg-[#1a1c1c] text-white">
@@ -95,12 +109,23 @@ function AdminNavigation({ onNavigate, role = 'admin' }: { onNavigate?: () => vo
       </nav>
 
       <div className="border-t border-white/10 px-8 py-8">
-        <div className="flex items-center gap-3">
-          <div className="grid size-10 place-items-center bg-white/10 font-serif text-sm">AV</div>
-          <div>
-            <p className="text-sm font-bold">Alexander V.</p>
-            <p className="text-[11px] uppercase tracking-[0.08em] text-[#838484]">{config.badge}</p>
+        <div className="flex items-center gap-3 group relative">
+          <div className="grid size-10 place-items-center bg-white/10 font-serif text-sm">{avatarInitials}</div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-bold" title={user?.name || 'Người dùng'}>
+              {user?.name || 'Người dùng'}
+            </p>
+            <p className="text-[11px] uppercase tracking-[0.08em] text-[#838484] truncate" title={user?.role || config.badge}>
+              {user?.role || config.badge}
+            </p>
           </div>
+          <button 
+            onClick={handleLogout}
+            title="Đăng xuất"
+            className="absolute right-0 top-1/2 -translate-y-1/2 opacity-0 transition-all duration-300 group-hover:opacity-100 hover:text-red-400 p-2"
+          >
+            <LogOut size={18} />
+          </button>
         </div>
       </div>
     </div>
@@ -121,58 +146,62 @@ export default function AdminLayout({ children, role = 'admin' }: AdminLayoutPro
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [drawerOpen])
 
+  const allowedRoles = role === 'admin' ? ['Admin'] : ['Admin', 'Staff']
+
   return (
-    <div className="min-h-screen bg-[#fbf9f9] text-[#1b1c1c]">
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 border-r border-white/10 lg:block">
-        <AdminNavigation role={role} />
-      </aside>
+    <ProtectedRoute allowedRoles={allowedRoles}>
+      <div className="min-h-screen bg-[#fbf9f9] text-[#1b1c1c]">
+        <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 border-r border-white/10 lg:block">
+          <AdminNavigation role={role} />
+        </aside>
 
-      <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-[#c4c7c7]/40 bg-[#fbf9f9]/95 px-5 backdrop-blur lg:hidden">
-        <button
-          type="button"
-          aria-label="Open navigation menu"
-          onClick={() => setDrawerOpen(true)}
-          className="grid size-11 place-items-center border border-[#c4c7c7] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
-        >
-          <Menu size={20} />
-        </button>
-        <span className="font-serif text-lg font-bold uppercase">Amazing</span>
-        <span className="w-11" aria-hidden="true" />
-      </header>
-
-      {drawerOpen ? (
-        <div className="fixed inset-0 z-50 lg:hidden">
+        <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-[#c4c7c7]/40 bg-[#fbf9f9]/95 px-5 backdrop-blur lg:hidden">
           <button
             type="button"
-            aria-label="Dismiss navigation overlay"
-            className="absolute inset-0 bg-black/60"
-            onClick={() => setDrawerOpen(false)}
-          />
-          <aside
-            role="dialog"
-            aria-modal="true"
-            aria-label={`${role} navigation`}
-            className="relative h-full w-[min(88vw,20rem)] shadow-2xl"
+            aria-label="Open navigation menu"
+            onClick={() => setDrawerOpen(true)}
+            className="grid size-11 place-items-center border border-[#c4c7c7] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
           >
-            <button
-              ref={closeButtonRef}
-              type="button"
-              aria-label="Close navigation menu"
-              onClick={() => setDrawerOpen(false)}
-              className="absolute right-4 top-4 z-10 grid size-10 place-items-center text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c6a84a]"
-            >
-              <X size={22} />
-            </button>
-            <AdminNavigation role={role} onNavigate={() => setDrawerOpen(false)} />
-          </aside>
-        </div>
-      ) : null}
+            <Menu size={20} />
+          </button>
+          <span className="font-serif text-lg font-bold uppercase">Amazing</span>
+          <span className="w-11" aria-hidden="true" />
+        </header>
 
-      <main className="min-h-screen lg:ml-72 p-5 sm:p-8 lg:p-10">
-        <div className="mx-auto max-w-[1440px]">
-          {children}
-        </div>
-      </main>
-    </div>
+        {drawerOpen ? (
+          <div className="fixed inset-0 z-50 lg:hidden">
+            <button
+              type="button"
+              aria-label="Dismiss navigation overlay"
+              className="absolute inset-0 bg-black/60"
+              onClick={() => setDrawerOpen(false)}
+            />
+            <aside
+              role="dialog"
+              aria-modal="true"
+              aria-label={`${role} navigation`}
+              className="relative h-full w-[min(88vw,20rem)] shadow-2xl"
+            >
+              <button
+                ref={closeButtonRef}
+                type="button"
+                aria-label="Close navigation menu"
+                onClick={() => setDrawerOpen(false)}
+                className="absolute right-4 top-4 z-10 grid size-10 place-items-center text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c6a84a]"
+              >
+                <X size={22} />
+              </button>
+              <AdminNavigation role={role} onNavigate={() => setDrawerOpen(false)} />
+            </aside>
+          </div>
+        ) : null}
+
+        <main className="min-h-screen lg:ml-72 p-5 sm:p-8 lg:p-10">
+          <div className="mx-auto max-w-[1440px]">
+            {children}
+          </div>
+        </main>
+      </div>
+    </ProtectedRoute>
   )
 }
