@@ -1,7 +1,11 @@
 import { type FormEvent, type ReactNode, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import Icon, { type IconName } from '../../../components/Icon'
+import Button from '../../../components/Button'
+import Modal from '../../../components/Modal'
 import { useAuthStore } from './authStore'
+import { authApi } from '../../../services/authApi'
+import { isAxiosError } from 'axios'
 
 const AUTH_IMAGES = {
     login: '/images/auth/login-editorial.png',
@@ -73,6 +77,7 @@ interface AuthFieldProps {
     autoComplete?: string
     icon: IconName
     type?: string
+    placeholder?: string
 }
 
 function AuthField({
@@ -84,6 +89,7 @@ function AuthField({
     autoComplete,
     icon,
     type = 'text',
+    placeholder,
 }: AuthFieldProps) {
     return (
         <div className="mb-[14px]">
@@ -105,7 +111,7 @@ function AuthField({
                     onChange={(event) => onChange(event.target.value)}
                     autoComplete={autoComplete || 'off'}
                     className="h-full min-w-0 flex-1 bg-transparent font-body text-[13px] font-light text-primary outline-none placeholder:text-on-surface-variant/70"
-                    placeholder="your@email.com"
+                    placeholder={placeholder || ""}
                     aria-invalid={!!error}
                     {...(error && { 'aria-describedby': `${id}-error` })}
                 />
@@ -191,14 +197,161 @@ function validatePassword(password: string) {
     return ''
 }
 
+function ForgotPasswordModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+    const [step, setStep] = useState<1 | 2>(1)
+    const [email, setEmail] = useState('')
+    const [token, setToken] = useState('')
+    const [newPassword, setNewPassword] = useState('')
+    const [confirmPassword, setConfirmPassword] = useState('')
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState('')
+    const [successMessage, setSuccessMessage] = useState('')
+
+    // Reset state when modal is closed or opened
+    const handleClose = () => {
+        setStep(1)
+        setEmail('')
+        setToken('')
+        setNewPassword('')
+        setConfirmPassword('')
+        setError('')
+        setSuccessMessage('')
+        onClose()
+    }
+
+    const handleRequestReset = async (e: FormEvent) => {
+        e.preventDefault()
+        setError('')
+        if (!email.trim()) {
+            setError('Vui lòng nhập Email.')
+            return
+        }
+
+        try {
+            setLoading(true)
+            await authApi.requestPasswordReset({ email: email.trim().toLowerCase() })
+            setSuccessMessage('Nếu email tồn tại, mã khôi phục đã được gửi. Vui lòng kiểm tra hộp thư.')
+            setStep(2) // Move to step 2 regardless to prevent email enumeration
+        } catch {
+            setError('Có lỗi xảy ra. Vui lòng thử lại.')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handleResetPassword = async (e: FormEvent) => {
+        e.preventDefault()
+        setError('')
+        if (!token.trim() || !newPassword) {
+            setError('Mã xác nhận và mật khẩu mới là bắt buộc.')
+            return
+        }
+        if (newPassword !== confirmPassword) {
+            setError('Mật khẩu nhập lại không khớp.')
+            return
+        }
+
+        try {
+            setLoading(true)
+            await authApi.resetPassword({
+                email: email.trim().toLowerCase(),
+                token: token.trim(),
+                newPassword: newPassword,
+                confirmPassword: confirmPassword
+            })
+            setSuccessMessage('Mật khẩu đã được khôi phục thành công! Bạn có thể đăng nhập ngay.')
+            // Có thể tự động đóng sau vài giây
+            setTimeout(() => {
+                handleClose()
+            }, 3000)
+        } catch (err) {
+            if (isAxiosError(err) && err.response && err.response.data) {
+                setError(typeof err.response.data === 'string' ? err.response.data : 'Có lỗi xảy ra.')
+            } else {
+                setError('Có lỗi xảy ra khi đặt lại mật khẩu.')
+            }
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    return (
+        <Modal isOpen={isOpen} onClose={handleClose} title="QUÊN MẬT KHẨU">
+            <div className="flex flex-col">
+                {error && <div className="mb-4 p-3 bg-error/10 text-error text-sm rounded-md">{error}</div>}
+                {successMessage && <div className="mb-4 p-3 bg-tertiary/10 text-tertiary text-sm rounded-md">{successMessage}</div>}
+
+                {step === 1 ? (
+                    <form onSubmit={handleRequestReset}>
+                        <p className="mb-4 text-sm text-on-surface-variant">
+                            Vui lòng nhập email tài khoản của bạn. Chúng tôi sẽ gửi một mã xác nhận để bạn khôi phục mật khẩu.
+                        </p>
+                        <AuthField
+                            id="reset-email"
+                            label="EMAIL"
+                            icon="mail"
+                            value={email}
+                            onChange={setEmail}
+                            type="email"
+                            placeholder="your@email.com"
+                        />
+                        <div className="mt-4 flex justify-end gap-2">
+                            <Button variant="ghost" onClick={handleClose} type="button">Hủy</Button>
+                            <Button type="submit" disabled={loading}>
+                                {loading ? 'ĐANG GỬI...' : 'GỬI MÃ'}
+                            </Button>
+                        </div>
+                    </form>
+                ) : (
+                    <form onSubmit={handleResetPassword}>
+                        <p className="mb-4 text-sm text-on-surface-variant">
+                            Mã xác nhận đã được gửi đến <span className="font-bold">{email}</span>. Vui lòng nhập mã và mật khẩu mới.
+                        </p>
+                        <AuthField
+                            id="reset-token"
+                            label="MÃ XÁC NHẬN"
+                            icon="lock"
+                            value={token}
+                            onChange={setToken}
+                            placeholder="Nhập mã khôi phục"
+                        />
+                        <PasswordField
+                            id="reset-new-password"
+                            label="MẬT KHẨU MỚI"
+                            value={newPassword}
+                            onChange={setNewPassword}
+                            autoComplete="new-password"
+                        />
+                        <PasswordField
+                            id="reset-confirm-password"
+                            label="NHẬP LẠI MẬT KHẨU MỚI"
+                            value={confirmPassword}
+                            onChange={setConfirmPassword}
+                            autoComplete="new-password"
+                        />
+                        <div className="mt-4 flex justify-end gap-2">
+                            <Button variant="ghost" onClick={handleClose} type="button">Hủy</Button>
+                            <Button type="submit" disabled={loading || successMessage.includes('thành công')}>
+                                {loading ? 'ĐANG XỬ LÝ...' : 'ĐỔI MẬT KHẨU'}
+                            </Button>
+                        </div>
+                    </form>
+                )}
+            </div>
+        </Modal>
+    )
+}
+
 export function LoginPage() {
     const navigate = useNavigate()
     const login = useAuthStore((state) => state.login)
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [loading, setLoading] = useState(false)
     const [errors, setErrors] = useState({ email: '', password: '' })
+    const [isForgotModalOpen, setForgotModalOpen] = useState(false)
 
-    const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault()
 
         const nextErrors = {
@@ -209,8 +362,29 @@ export function LoginPage() {
         setErrors(nextErrors)
         if (nextErrors.email || nextErrors.password) return
 
-        login(email.trim().toLowerCase())
-        navigate('/')
+        try {
+            setLoading(true)
+            const response = await authApi.login({
+                email: email.trim().toLowerCase(),
+                password: password,
+            })
+            login(response)
+            if (response.role === 'Admin') {
+                navigate('/admin')
+            } else if (response.role === 'Staff') {
+                navigate('/staff')
+            } else {
+                navigate('/')
+            }
+        } catch (error) {
+            if (isAxiosError(error) && error.response && error.response.status === 401) {
+                setErrors({ email: '', password: 'Email hoặc mật khẩu không chính xác.' })
+            } else {
+                setErrors({ email: '', password: 'Có lỗi xảy ra khi đăng nhập. Vui lòng thử lại.' })
+            }
+        } finally {
+            setLoading(false)
+        }
     }
 
     return (
@@ -226,6 +400,7 @@ export function LoginPage() {
                         error={errors.email}
                         autoComplete="email"
                         type="email"
+                        placeholder="your@email.com"
                     />
                     <PasswordField
                         id="login-password"
@@ -238,24 +413,29 @@ export function LoginPage() {
 
                     <button
                         type="button"
-                        className="mb-[12px] ml-auto block border-b border-outline font-body text-[13px] font-light leading-none text-on-surface-variant transition-colors hover:text-primary"
+                        onClick={() => setForgotModalOpen(true)}
+                        className="mb-[12px] ml-auto block border-b border-outline font-body text-[13px] font-light leading-none text-on-surface-variant transition-colors hover:text-primary cursor-pointer"
                     >
                         Quên mật khẩu?
                     </button>
 
-                    <button
+                    <Button
                         type="submit"
-                        className="h-[42px] w-full rounded-[7px] bg-primary font-label text-[14px] font-bold uppercase text-on-primary shadow-[0_4px_4px_rgba(0,0,0,0.25)] transition-colors hover:bg-secondary"
+                        disabled={loading}
+                        fullWidth
                     >
-                        ĐĂNG NHẬP
-                    </button>
+                        {loading ? 'ĐANG XỬ LÝ...' : 'ĐĂNG NHẬP'}
+                    </Button>
 
-                    <Link
-                        to="/register"
-                        className="mt-[10px] flex h-[42px] w-full items-center justify-center rounded-[7px] border border-outline bg-white font-label text-[14px] font-bold uppercase text-primary shadow-[0_4px_4px_rgba(0,0,0,0.18)] transition-colors hover:border-secondary hover:text-secondary"
-                    >
-                        ĐĂNG KÝ
-                    </Link>
+                    <div className="mt-[10px]">
+                        <Button
+                            variant="outline"
+                            fullWidth
+                            onClick={() => navigate('/register')}
+                        >
+                            ĐĂNG KÝ
+                        </Button>
+                    </div>
 
                     <div className="my-[16px] flex items-center gap-2">
                         <span className="h-px flex-1 bg-outline" />
@@ -274,86 +454,133 @@ export function LoginPage() {
                     </button>
                 </form>
             </AuthCard>
+            <ForgotPasswordModal isOpen={isForgotModalOpen} onClose={() => setForgotModalOpen(false)} />
         </AuthDesktopLayout>
     )
 }
 
 export function RegisterPage() {
     const navigate = useNavigate()
-    const register = useAuthStore((state) => state.register)
+    const login = useAuthStore((state) => state.login)
+    const [firstName, setFirstName] = useState('')
+    const [lastName, setLastName] = useState('')
     const [email, setEmail] = useState('')
-    const [birthYear, setBirthYear] = useState('')
+    const [phoneNumber, setPhoneNumber] = useState('')
     const [password, setPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
+    const [loading, setLoading] = useState(false)
 
     const [errors, setErrors] = useState({
+        firstName: '',
+        lastName: '',
         email: '',
-        birthYear: '',
         password: '',
         confirmPassword: '',
+        general: '',
     })
 
-    const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault()
 
-        const currentYear = new Date().getFullYear()
-
         const nextErrors = {
+            firstName: !firstName.trim() ? 'Tên là bắt buộc.' : '',
+            lastName: !lastName.trim() ? 'Họ là bắt buộc.' : '',
             email: validateEmail(email),
-
-            birthYear:
-                !birthYear
-                    ? 'Năm sinh là bắt buộc.'
-                    : Number(birthYear) > currentYear
-                    ? 'Năm sinh không hợp lệ.'
-                    : '',
-
             password: validatePassword(password),
-
-            confirmPassword:
-                confirmPassword === password
-                    ? ''
-                    : 'Mật khẩu nhập lại không khớp.',
+            confirmPassword: confirmPassword === password ? '' : 'Mật khẩu nhập lại không khớp.',
+            general: '',
         }
 
         setErrors(nextErrors)
 
         if (
+            nextErrors.firstName ||
+            nextErrors.lastName ||
             nextErrors.email ||
-            nextErrors.birthYear ||
             nextErrors.password ||
             nextErrors.confirmPassword
         ) {
             return
         }
 
-        register(email.trim().toLowerCase())
-        navigate('/')
+        try {
+            setLoading(true)
+            const response = await authApi.register({
+                firstName: firstName.trim(),
+                lastName: lastName.trim(),
+                email: email.trim().toLowerCase(),
+                phoneNumber: phoneNumber.trim(),
+                password: password,
+                confirmPassword: confirmPassword,
+            })
+            login(response)
+            navigate('/')
+        } catch (error) {
+            if (isAxiosError(error) && error.response && error.response.status === 409) {
+                setErrors((prev) => ({ ...prev, email: 'Email này đã được đăng ký.' }))
+            } else if (isAxiosError(error) && error.response && error.response.data) {
+                const responseData = error.response.data
+                setErrors((prev) => ({ ...prev, general: typeof responseData === 'string' ? responseData : 'Có lỗi xảy ra, vui lòng thử lại.' }))
+            } else {
+                setErrors((prev) => ({ ...prev, general: 'Có lỗi kết nối. Vui lòng thử lại.' }))
+            }
+        } finally {
+            setLoading(false)
+        }
     }
 
     return (
         <AuthDesktopLayout mode="register" railText="FASHION">
             <AuthCard title="ĐĂNG KÝ">
                 <form onSubmit={handleSubmit} noValidate>
+                    {errors.general && (
+                        <div className="mb-3 p-2 bg-error/10 text-error text-[13px] rounded-md text-center">
+                            {errors.general}
+                        </div>
+                    )}
+                    <div className="flex gap-2 w-full">
+                        <div className="flex-1 min-w-0">
+                            <AuthField
+                                id="register-last-name"
+                                label="HỌ"
+                                icon="user"
+                                value={lastName}
+                                onChange={setLastName}
+                                error={errors.lastName}
+                                placeholder="Nguyễn"
+                            />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <AuthField
+                                id="register-first-name"
+                                label="TÊN"
+                                icon="user"
+                                value={firstName}
+                                onChange={setFirstName}
+                                error={errors.firstName}
+                                placeholder="Văn A"
+                            />
+                        </div>
+                    </div>
                     <AuthField
                         id="register-email"
-                        label="Email"
+                        label="EMAIL"
                         icon="mail"
                         value={email}
                         onChange={setEmail}
                         error={errors.email}
                         autoComplete="email"
                         type="email"
+                        placeholder="your@email.com"
                     />
                     <AuthField
-                        id="register-birth-year"
-                        label="NĂM SINH"
-                        icon="mail"
-                        value={birthYear}
-                        onChange={setBirthYear}
-                        error={errors.birthYear}
-                        autoComplete="off"
-                        type="number"
+                        id="register-phone"
+                        label="SỐ ĐIỆN THOẠI"
+                        icon="call"
+                        value={phoneNumber}
+                        onChange={setPhoneNumber}
+                        type="tel"
+                        placeholder="0987654321"
                     />
                     <PasswordField
                         id="register-password"
@@ -372,12 +599,25 @@ export function RegisterPage() {
                         autoComplete="new-password"
                     />
 
-                    <button
-                        type="submit"
-                        className="mt-[10px] h-[42px] w-full rounded-[7px] border border-outline bg-white font-label text-[14px] font-bold uppercase text-primary shadow-[0_4px_4px_rgba(0,0,0,0.18)] transition-colors hover:border-secondary hover:text-secondary"
-                    >
-                        ĐĂNG KÝ
-                    </button>
+                    <div className="mt-[10px]">
+                        <Button
+                            type="submit"
+                            disabled={loading}
+                            fullWidth
+                        >
+                            {loading ? 'ĐANG XỬ LÝ...' : 'ĐĂNG KÝ'}
+                        </Button>
+                    </div>
+
+                    <div className="mt-[10px]">
+                        <Button
+                            variant="outline"
+                            fullWidth
+                            onClick={() => navigate('/login')}
+                        >
+                            VỀ ĐĂNG NHẬP
+                        </Button>
+                    </div>
                 </form>
             </AuthCard>
         </AuthDesktopLayout>

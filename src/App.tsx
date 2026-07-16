@@ -37,41 +37,21 @@ function ScrollToTop() {
 }
 
 function CustomerLayout({ children }: { children?: React.ReactNode }) {
+  const location = useLocation()
+  const hideFooter = location.pathname === '/login' || location.pathname === '/register'
+
   return (
     <>
       <Navbar />
       <main className="pt-[80px]">
         {children ?? <HomePage />}
       </main>
-      <Footer />
+      {!hideFooter && <Footer />}
     </>
   )
 }
 
-function RoleSwitcher() {
-  const location = useLocation()
-  const isAdmin = location.pathname.startsWith('/admin')
-  const isStaff = location.pathname.startsWith('/staff')
-  const isCustomer = !isAdmin && !isStaff
 
-  const btnBase = 'px-4 py-2 rounded-full font-label text-[12px] font-bold uppercase tracking-wider transition-all duration-300'
-  const btnActive = 'bg-primary text-on-primary shadow-md'
-  const btnInactive = 'text-on-surface-variant hover:text-primary'
-
-  return (
-    <div role="group" aria-label="Role switcher" className="fixed bottom-6 right-6 z-[9999] hidden items-center gap-1 rounded-full border border-outline-variant/30 bg-background/90 p-1.5 shadow-2xl backdrop-blur-md sm:flex">
-      <Link to="/" className={`${btnBase} ${isCustomer ? btnActive : btnInactive}`}>
-        Khách hàng
-      </Link>
-      <Link to="/staff" className={`${btnBase} ${isStaff ? btnActive : btnInactive}`}>
-        Staff
-      </Link>
-      <Link to="/admin" className={`${btnBase} ${isAdmin ? btnActive : btnInactive}`}>
-        Admin
-      </Link>
-    </div>
-  )
-}
 
 function App() {
   return (
@@ -339,8 +319,6 @@ function App() {
             }
           />
         </Routes>
-
-        <RoleSwitcher />
       </div>
     </BrowserRouter>
   )

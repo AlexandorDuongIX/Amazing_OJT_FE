@@ -7,6 +7,39 @@ import { useCartStore } from '../cart/cartStore'
 /* ---------- Helpers ---------- */
 const formatVND = (amount: number) => amount.toLocaleString('vi-VN') + ' ₫'
 
+const FALLBACK_IMAGE = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22800%22%20height%3D%221000%22%20viewBox%3D%220%200%20800%201000%22%3E%3Crect%20width%3D%22800%22%20height%3D%221000%22%20fill%3D%22%23e2e8f0%22%2F%3E%3Ctext%20x%3D%22400%22%20y%3D%22500%22%20font-family%3D%22sans-serif%22%20font-size%3D%2240%22%20fill%3D%22%2394a3b8%22%20text-anchor%3D%22middle%22%20dominant-baseline%3D%22middle%22%3ENo%20Image%3C%2Ftext%3E%3C%2Fsvg%3E'
+
+const getSafeImageUrl = (url?: string | null) => {
+  if (!url) return FALLBACK_IMAGE;
+  if (url.includes('placeholder.com') || url.includes('placehold.co')) return FALLBACK_IMAGE;
+  return url;
+}
+
+const COLOR_MAP: Record<string, string> = {
+  'đen': '#111111',
+  'trắng': '#ffffff',
+  'đỏ': '#ef4444',
+  'xanh dương': '#3b82f6',
+  'xanh lá': '#22c55e',
+  'vàng': '#eab308',
+  'xám': '#6b7280',
+  'hồng': '#ec4899',
+  'nâu': '#78350f',
+  'tím': '#a855f7',
+  'cam': '#f97316',
+};
+
+const getCssColor = (colorName: string) => {
+  const normalized = colorName.toLowerCase().trim();
+  if (COLOR_MAP[normalized]) return COLOR_MAP[normalized];
+  
+  // Nếu Admin có nhập trực tiếp mã Hex hoặc RGB thì dùng luôn
+  if (normalized.startsWith('#') || normalized.startsWith('rgb')) return normalized;
+  
+  // Fallback: Gradient 7 sắc cầu vồng cho các màu lạ/không xác định
+  return 'linear-gradient(135deg, #ef4444 0%, #eab308 25%, #22c55e 50%, #3b82f6 75%, #a855f7 100%)';
+};
+
 /* ---------- Accordion ---------- */
 function AccordionRow({
   title,
@@ -134,8 +167,8 @@ export default function ProductDetailPage() {
   const hasDiscount = product.discountPrice !== undefined && product.discountPrice !== null && product.discountPrice < product.basePrice
   const displayPrice = hasDiscount ? product.discountPrice! : product.basePrice
   const mainImage = mainImgError
-    ? 'https://via.placeholder.com/800x1000?text=No+Image'
-    : (product.images?.[0]?.url ?? 'https://via.placeholder.com/800x1000?text=No+Image')
+    ? FALLBACK_IMAGE
+    : getSafeImageUrl(product.images?.[0]?.url)
 
   const handleAddToCart = () => {
     addItem({
@@ -195,10 +228,10 @@ export default function ProductDetailPage() {
                 className="w-full aspect-[4/5] object-cover object-center"
               />
             </div>
-            {product.images?.[1] && (
+            {getSafeImageUrl(product.images?.[1]?.url) !== FALLBACK_IMAGE && (
               <div className="hidden md:block overflow-hidden bg-surface-container-low">
                 <img
-                  src={product.images[1]?.url}
+                  src={getSafeImageUrl(product.images?.[1]?.url)}
                   alt={product.name}
                   className="w-full aspect-[4/5] object-cover object-center"
                 />
@@ -246,7 +279,7 @@ export default function ProductDetailPage() {
                         type="button"
                         onClick={() => setSelectedColor(color)}
                         className={`h-5 w-5 md:h-6 md:w-6 rounded-full border transition-all ${isActive ? 'border-primary ring-2 ring-primary/20 ring-offset-2 ring-offset-background' : 'border-[#d7d2cf]'}`}
-                        style={{ backgroundColor: color }}
+                        style={{ background: getCssColor(color) }}
                         aria-label={color}
                       />
                     )
@@ -354,7 +387,7 @@ export default function ProductDetailPage() {
                 <Link key={item.id} to={`/product/${item.id}`} className="group block">
                   <div className="overflow-hidden bg-surface-container-low">
                     <img
-                      src={item.thumbnailUrl || item.imageUrl}
+                      src={getSafeImageUrl(item.thumbnailUrl || item.imageUrl)}
                       alt={item.name}
                       className="aspect-[3/4] w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                     />

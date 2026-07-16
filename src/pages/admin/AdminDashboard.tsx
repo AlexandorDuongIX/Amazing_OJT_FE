@@ -1,42 +1,36 @@
 import { Link } from 'react-router-dom'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import {
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Area,
+  AreaChart
+} from 'recharts'
+import { dashboardApi } from '../../services/dashboardApi'
+import type { AdminDashboardDto } from '../../services/dashboardApi'
 
 /* ============================================================
    AdminDashboard — AMAZING Luxury Admin
-   ============================================================
-   Sections:
-   1. Welcome Header + Date Filter
-   2. KPI Cards (Revenue, Orders, Customers, Products)
-   3. Revenue Chart + Quick Actions (Bento layout)
-   4. Recent Orders Table
    ============================================================ */
 
-/* ---------- Types ---------- */
-interface Order {
-  id: string
-  customer: string
-  avatar: string
-  date: string
-  status: 'Processing' | 'Shipped' | 'Delivered'
-  total: string
-}
-
-/* ---------- Mock Data ---------- */
-const ORDERS: Order[] = [
-  { id: '#AMZ-9902', customer: 'Nguyễn Anh Quân', avatar: 'N', date: '12/12/2024', status: 'Processing', total: '4.250.000 VNĐ' },
-  { id: '#AMZ-9901', customer: 'Trần Thị Mai', avatar: 'T', date: '11/12/2024', status: 'Shipped', total: '8.100.000 VNĐ' },
-  { id: '#AMZ-9899', customer: 'Lê Hoàng Nam', avatar: 'L', date: '11/12/2024', status: 'Delivered', total: '12.500.000 VNĐ' },
-]
-
 /* ---------- Status Badge Helper ---------- */
-function getStatusStyle(status: Order['status']) {
-  switch (status) {
-    case 'Processing':
+function getStatusStyle(status: string) {
+  switch (status.toLowerCase()) {
+    case 'processing':
+    case 'pending':
       return 'bg-secondary-container text-on-secondary-container'
-    case 'Shipped':
+    case 'shipped':
       return 'bg-tertiary text-on-tertiary'
-    case 'Delivered':
+    case 'delivered':
+    case 'completed':
       return 'bg-outline-variant text-on-surface-variant'
+    case 'cancelled':
+      return 'bg-error-container text-on-error-container'
+    default:
+      return 'bg-surface-container text-on-surface'
   }
 }
 
@@ -44,9 +38,9 @@ function getStatusStyle(status: Order['status']) {
 interface KpiCardProps {
   icon: string
   label: string
-  value: string
+  value: string | number
   unit?: string
-  badge: string
+  badge?: string
   badgeColor?: string
 }
 
@@ -57,7 +51,7 @@ function KpiCard({ icon, label, value, unit, badge, badgeColor = 'text-secondary
         <div className="p-3 bg-tertiary-container text-on-tertiary">
           <span className="material-symbols-outlined">{icon}</span>
         </div>
-        <span className={`${badgeColor} font-semibold text-caption`}>{badge}</span>
+        {badge && <span className={`${badgeColor} font-semibold text-caption`}>{badge}</span>}
       </div>
       <p className="font-body text-label-md uppercase tracking-widest text-on-surface-variant mb-2">
         {label}
@@ -66,77 +60,7 @@ function KpiCard({ icon, label, value, unit, badge, badgeColor = 'text-secondary
         {value}
         {unit && <span className="text-body-md font-normal"> {unit}</span>}
       </h3>
-      {/* Hover gold bar animation */}
       <div className="absolute bottom-0 left-0 h-1 w-0 bg-secondary transition-all duration-500 group-hover:w-full" />
-    </div>
-  )
-}
-
-/* ---------- Revenue Chart (SVG) ---------- */
-function RevenueChart() {
-  return (
-    <div className="lg:col-span-2 bg-surface-container-lowest border border-outline-variant p-10">
-      <div className="flex justify-between items-center mb-10">
-        <h3 className="text-headline-md font-bold text-primary">Xu hướng doanh thu</h3>
-        <div className="flex gap-2">
-          <button className="px-4 py-1.5 border border-primary bg-primary text-on-primary font-body text-caption uppercase tracking-wider transition-colors hover:bg-tertiary cursor-pointer">
-            VNĐ
-          </button>
-          <button className="px-4 py-1.5 border border-outline-variant text-on-surface-variant font-body text-caption uppercase tracking-wider hover:border-primary transition-colors cursor-pointer">
-            USD
-          </button>
-        </div>
-      </div>
-      <div className="h-80 w-full relative overflow-hidden bg-gradient-to-b from-[rgba(115,92,0,0.08)] to-[rgba(115,92,0,0)]">
-        {/* Grid Lines */}
-        <div className="absolute inset-0 flex flex-col justify-between py-4 opacity-20">
-          <div className="w-full h-[1px] bg-outline-variant" />
-          <div className="w-full h-[1px] bg-outline-variant" />
-          <div className="w-full h-[1px] bg-outline-variant" />
-          <div className="w-full h-[1px] bg-outline-variant" />
-        </div>
-
-        {/* SVG Wave Area Chart */}
-        <svg
-          className="absolute bottom-0 left-0 w-full h-full"
-          viewBox="0 0 1000 100"
-          preserveAspectRatio="none"
-        >
-          <defs>
-            <linearGradient id="waveGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#735c00" stopOpacity="0.3" />
-              <stop offset="100%" stopColor="#735c00" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-          {/* Area Fill */}
-          <path
-            d="M0,80 C150,70 250,40 400,50 C550,60 650,20 800,30 C900,40 1000,10 1000,10 L1000,100 L0,100 Z"
-            fill="url(#waveGradient)"
-          />
-          {/* Stroke Line */}
-          <path
-            d="M0,80 C150,70 250,40 400,50 C550,60 650,20 800,30 C900,40 1000,10 1000,10"
-            fill="none"
-            stroke="#735c00"
-            strokeWidth="2"
-          />
-          {/* Data Points */}
-          <circle cx="0" cy="80" r="4" fill="#000000" />
-          <circle cx="400" cy="50" r="4" fill="#000000" />
-          <circle cx="800" cy="30" r="4" fill="#000000" />
-          <circle cx="1000" cy="10" r="4" fill="#000000" />
-        </svg>
-
-        {/* X-Axis Labels */}
-        <div className="absolute bottom-2 left-0 w-full flex justify-between px-4">
-          <span className="font-body text-caption text-on-surface-variant">T7</span>
-          <span className="font-body text-caption text-on-surface-variant">T8</span>
-          <span className="font-body text-caption text-on-surface-variant">T9</span>
-          <span className="font-body text-caption text-on-surface-variant">T10</span>
-          <span className="font-body text-caption text-on-surface-variant">T11</span>
-          <span className="font-body text-caption text-primary font-bold">T12</span>
-        </div>
-      </div>
     </div>
   )
 }
@@ -152,7 +76,7 @@ function QuickActions() {
   const actions: QuickAction[] = [
     { icon: 'confirmation_number', label: 'Tạo Voucher mới' },
     { icon: 'edit_note', label: 'Quản lý nội dung', href: '/admin/content' },
-    { icon: 'add_business', label: 'Thêm sản phẩm' },
+    { icon: 'add_business', label: 'Thêm sản phẩm', href: '/admin/products' },
   ]
 
   return (
@@ -201,7 +125,6 @@ function QuickActions() {
         </div>
       </div>
 
-      {/* Support Card */}
       <div className="mt-12 p-6 bg-secondary text-on-secondary-fixed">
         <p className="font-body text-caption font-bold uppercase tracking-widest mb-1">
           Cần hỗ trợ?
@@ -219,28 +142,60 @@ function QuickActions() {
 
 /* ---------- AdminDashboard Main ---------- */
 export default function AdminDashboard() {
-  const [_timePeriod, setTimePeriod] = useState('this-month')
+  const [timePeriod, setTimePeriod] = useState('this-month')
+  const [loading, setLoading] = useState(true)
+  const [data, setData] = useState<AdminDashboardDto | null>(null)
+
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        setLoading(true)
+        // Simulate fetching based on timePeriod (can calculate fromDate/toDate here)
+        const response = await dashboardApi.getAdminDashboard()
+        setData(response)
+      } catch (error) {
+        console.error("Failed to fetch admin dashboard", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchDashboard()
+  }, [timePeriod])
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
+
+  if (!data) {
+    return (
+      <div className="flex justify-center items-center h-64 text-error">
+        Không thể tải dữ liệu Dashboard
+      </div>
+    )
+  }
 
   return (
-      <div className="flex flex-col gap-0">
-        {/* ===== Welcome Header ===== */}
-        <header className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between mb-8">
-          <div>
-            <h1 className="font-serif text-4xl font-medium leading-tight text-black uppercase">CHÀO MỪNG TRỞ LẠI, ADMIN</h1>
-            <p className="mt-2 text-[11px] uppercase tracking-[0.15em] text-[#444748]">
-              Trang chủ &nbsp;/&nbsp; <strong className="text-black">DASHBOARD</strong>
-            </p>
-          </div>
+    <div className="flex flex-col gap-0">
+      {/* ===== Welcome Header ===== */}
+      <header className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between mb-8">
+        <div>
+          <h1 className="font-serif text-4xl font-medium leading-tight text-black uppercase">CHÀO MỪNG TRỞ LẠI, ADMIN</h1>
+          <p className="mt-2 text-[11px] uppercase tracking-[0.15em] text-[#444748]">
+            Trang chủ &nbsp;/&nbsp; <strong className="text-black">DASHBOARD</strong>
+          </p>
+        </div>
         <div className="flex items-center gap-4 bg-surface-container-low px-4 py-2 border border-outline-variant">
           <span className="material-symbols-outlined text-secondary">calendar_today</span>
           <select
-            value={_timePeriod}
+            value={timePeriod}
             onChange={(e) => setTimePeriod(e.target.value)}
-            title="Chọn khoảng thời gian"
-            aria-label="Chọn khoảng thời gian"
             className="bg-transparent border-none focus:ring-0 focus:outline-none font-body text-label-md uppercase tracking-wider cursor-pointer"
           >
-            <option value="this-month">Tháng này (Tháng 12, 2024)</option>
+            <option value="this-month">Tháng này</option>
             <option value="last-month">Tháng trước</option>
             <option value="quarter">Quý này</option>
           </select>
@@ -252,45 +207,160 @@ export default function AdminDashboard() {
         <KpiCard
           icon="payments"
           label="Doanh thu tổng"
-          value="1.250.000.000"
+          value={data.summary.totalRevenue.toLocaleString()}
           unit="VNĐ"
-          badge="+12% vs tháng trước"
         />
         <KpiCard
           icon="shopping_cart"
           label="Tổng đơn hàng"
-          value="458"
-          badge="+5% vs tháng trước"
+          value={data.summary.totalOrders.toLocaleString()}
         />
         <KpiCard
           icon="person_add"
           label="Khách hàng mới"
-          value="124"
-          badge="Mục tiêu: 150"
+          value={data.summary.totalCustomers.toLocaleString()}
           badgeColor="text-on-surface-variant/40"
         />
         <KpiCard
           icon="apparel"
           label="Sản phẩm đang bán"
-          value="86"
-          badge="8 mẫu mới"
-          badgeColor="text-on-surface-variant/40"
+          value={data.summary.activeProducts.toLocaleString()}
+          badge={`${data.summary.lowStockProducts} cảnh báo kho`}
+          badgeColor="text-error"
         />
       </section>
 
       {/* ===== Revenue Chart & Quick Actions ===== */}
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-        <RevenueChart />
+        <div className="lg:col-span-2 bg-surface-container-lowest border border-outline-variant p-10">
+          <div className="flex justify-between items-center mb-10">
+            <h3 className="text-headline-md font-bold text-primary">Xu hướng doanh thu</h3>
+          </div>
+          <div className="h-80 w-full relative">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={data.revenueTrend}>
+                <defs>
+                  <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#735c00" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#735c00" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e0e0e0" />
+                <XAxis dataKey="label" tick={{fontFamily: 'inherit', fontSize: 12}} />
+                <YAxis 
+                  tickFormatter={(val) => (val / 1000000) + 'M'} 
+                  tick={{fontFamily: 'inherit', fontSize: 12}} 
+                  width={60}
+                />
+                <Tooltip 
+                  formatter={(value: number) => [value.toLocaleString() + ' VNĐ', 'Doanh thu']}
+                  labelStyle={{color: '#000'}}
+                />
+                <Area type="monotone" dataKey="revenue" stroke="#735c00" fillOpacity={1} fill="url(#colorRevenue)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
         <QuickActions />
+      </section>
+
+      {/* ===== Top Products & Stock Alerts ===== */}
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+        {/* Top Products */}
+        <div className="bg-surface-container-lowest border border-outline-variant">
+          <div className="p-6 border-b border-outline-variant flex justify-between items-center">
+            <h3 className="text-headline-md font-bold text-primary flex items-center gap-2">
+              <span className="material-symbols-outlined text-secondary">trending_up</span>
+              Sản phẩm bán chạy
+            </h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="font-body text-label-md uppercase tracking-wider text-on-surface-variant bg-surface-container-low">
+                  <th className="p-4 font-semibold">Sản phẩm</th>
+                  <th className="p-4 font-semibold text-right">Đã bán</th>
+                  <th className="p-4 font-semibold text-right">Doanh thu</th>
+                </tr>
+              </thead>
+              <tbody className="font-body text-body-md divide-y divide-outline-variant">
+                {data.topProducts && data.topProducts.length > 0 ? (
+                  data.topProducts.map((p) => (
+                    <tr key={p.productId} className="hover:bg-surface-container-low">
+                      <td className="p-4">
+                        <p className="font-bold">{p.productName}</p>
+                        <p className="text-caption text-on-surface-variant">{p.sku}</p>
+                      </td>
+                      <td className="p-4 text-right font-bold">{p.totalSold}</td>
+                      <td className="p-4 text-right font-bold text-secondary">{p.revenue.toLocaleString()} đ</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={3} className="p-6 text-center text-on-surface-variant">Không có dữ liệu</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Stock Alerts */}
+        <div className="bg-surface-container-lowest border border-outline-variant">
+          <div className="p-6 border-b border-outline-variant flex justify-between items-center">
+            <h3 className="text-headline-md font-bold text-error flex items-center gap-2">
+              <span className="material-symbols-outlined">warning</span>
+              Cảnh báo tồn kho
+            </h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="font-body text-label-md uppercase tracking-wider text-on-surface-variant bg-surface-container-low">
+                  <th className="p-4 font-semibold">Sản phẩm</th>
+                  <th className="p-4 font-semibold text-right">Tồn kho</th>
+                  <th className="p-4 font-semibold">Danh mục</th>
+                </tr>
+              </thead>
+              <tbody className="font-body text-body-md divide-y divide-outline-variant">
+                {data.stockAlerts && data.stockAlerts.length > 0 ? (
+                  data.stockAlerts.map((p) => (
+                    <tr key={p.productId} className="hover:bg-error-container/20">
+                      <td className="p-4">
+                        <p className="font-bold">{p.productName}</p>
+                        <p className="text-caption text-on-surface-variant">{p.sku}</p>
+                      </td>
+                      <td className="p-4 text-right font-bold text-error">
+                        {p.availableQuantity}
+                      </td>
+                      <td className="p-4">
+                        <span className="inline-block px-2 py-1 bg-surface-container-highest text-caption rounded">
+                          {p.categoryName || 'N/A'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={3} className="p-6 text-center text-on-surface-variant">Không có cảnh báo tồn kho</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </section>
 
       {/* ===== Recent Orders Table ===== */}
       <section className="bg-surface-container-lowest border border-outline-variant mb-12">
         <div className="p-8 border-b border-outline-variant flex justify-between items-center">
-          <h3 className="text-headline-md font-bold text-primary">Đơn hàng gần đây</h3>
-          <button className="font-body text-label-md uppercase tracking-widest text-secondary hover:underline transition-all cursor-pointer">
+          <h3 className="text-headline-md font-bold text-primary flex items-center gap-2">
+            <span className="material-symbols-outlined text-secondary">receipt_long</span>
+            Đơn hàng gần đây
+          </h3>
+          <Link to="/admin/orders" className="font-body text-label-md uppercase tracking-widest text-secondary hover:underline transition-all cursor-pointer">
             Xem tất cả
-          </button>
+          </Link>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
@@ -304,31 +374,40 @@ export default function AdminDashboard() {
               </tr>
             </thead>
             <tbody className="font-body text-body-md divide-y divide-outline-variant">
-              {ORDERS.map((order) => (
-                <tr
-                  key={order.id}
-                  className="transform transition-all duration-300 hover:translate-x-2 hover:bg-surface-container-low cursor-pointer group"
-                >
-                  <td className="p-6 font-bold">{order.id}</td>
-                  <td className="p-6">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-surface-container-highest flex items-center justify-center text-on-surface-variant">
-                        {order.avatar}
+              {data.recentOrders && data.recentOrders.length > 0 ? (
+                data.recentOrders.map((order) => (
+                  <tr
+                    key={order.id}
+                    className="transform transition-all duration-300 hover:translate-x-2 hover:bg-surface-container-low cursor-pointer group"
+                  >
+                    <td className="p-6 font-bold">{order.orderNumber}</td>
+                    <td className="p-6">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-surface-container-highest flex items-center justify-center text-on-surface-variant uppercase font-bold">
+                          {order.customerName.charAt(0)}
+                        </div>
+                        <div>
+                          <span>{order.customerName}</span>
+                          <p className="text-caption text-on-surface-variant">{order.customerEmail}</p>
+                        </div>
                       </div>
-                      <span>{order.customer}</span>
-                    </div>
-                  </td>
-                  <td className="p-6">{order.date}</td>
-                  <td className="p-6">
-                    <span
-                      className={`inline-block px-3 py-1 text-caption font-bold uppercase tracking-wider ${getStatusStyle(order.status)}`}
-                    >
-                      {order.status}
-                    </span>
-                  </td>
-                  <td className="p-6 text-right font-bold">{order.total}</td>
+                    </td>
+                    <td className="p-6">{new Date(order.createdAt).toLocaleDateString('vi-VN')}</td>
+                    <td className="p-6">
+                      <span
+                        className={`inline-block px-3 py-1 text-caption font-bold uppercase tracking-wider ${getStatusStyle(order.status)}`}
+                      >
+                        {order.status}
+                      </span>
+                    </td>
+                    <td className="p-6 text-right font-bold">{order.totalPrice.toLocaleString()} đ</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={5} className="p-6 text-center text-on-surface-variant">Không có đơn hàng nào gần đây</td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
