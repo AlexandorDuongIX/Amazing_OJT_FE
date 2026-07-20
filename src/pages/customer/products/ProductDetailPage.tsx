@@ -3,6 +3,8 @@ import { Link, useParams, useNavigate } from 'react-router-dom'
 import type { ProductDetailDto, ProductListDto } from '../../../types/product'
 import { fetchProductById, fetchProducts } from '../../../services/productApi'
 import { useCartStore } from '../cart/cartStore'
+import { useAuthStore } from '../auth/authStore'
+import { cartService } from '../../../services/cartService'
 
 /* ---------- Helpers ---------- */
 const formatVND = (amount: number) => amount.toLocaleString('vi-VN') + ' ₫'
@@ -171,28 +173,50 @@ export default function ProductDetailPage() {
     : getSafeImageUrl(product.images?.[0]?.url)
 
   const handleAddToCart = () => {
-    addItem({
-      id: product.id.toString(), // Store expects string or we can update store later
-      name: product.name,
-      price: displayPrice,
-      imageUrl: product.images?.[0]?.url ?? '',
-      size: selectedSize,
-      color: selectedColor,
-      quantity: 1,
-    })
-    showToast(product.name, product.images?.[0]?.url ?? '', displayPrice)
+    const userId = useAuthStore.getState().user?.id
+
+    // If logged in, use cartService to sync to server (it handles local state via fetchCart)
+    // If offline, add locally only
+    if (userId) {
+      cartService.addItem(
+        product.id,
+        1,
+        product.name,
+        displayPrice,
+        product.images?.[0]?.url ?? '',
+        selectedSize,
+        selectedColor
+      ).then(() => {
+        showToast(product.name, product.images?.[0]?.url ?? '', displayPrice)
+      }).catch(() => {
+        // Fallback: add locally only
+        addItem({
+          id: product.id.toString(),
+          name: product.name,
+          price: displayPrice,
+          imageUrl: product.images?.[0]?.url ?? '',
+          size: selectedSize,
+          color: selectedColor,
+          quantity: 1,
+        })
+        showToast(product.name, product.images?.[0]?.url ?? '', displayPrice)
+      })
+    } else {
+      addItem({
+        id: product.id.toString(),
+        name: product.name,
+        price: displayPrice,
+        imageUrl: product.images?.[0]?.url ?? '',
+        size: selectedSize,
+        color: selectedColor,
+        quantity: 1,
+      })
+      showToast(product.name, product.images?.[0]?.url ?? '', displayPrice)
+    }
   }
 
   const handleBuyNow = () => {
-    addItem({
-      id: product.id.toString(),
-      name: product.name,
-      price: displayPrice,
-      imageUrl: product.images?.[0]?.url ?? '',
-      size: selectedSize,
-      color: selectedColor,
-      quantity: 1,
-    })
+    handleAddToCart()
     navigate('/payment')
   }
 

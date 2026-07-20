@@ -1,95 +1,30 @@
-import { useState } from "react";
-import { create } from 'zustand';
-import type { Promotion } from './promotionData';
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Info } from "lucide-react";
+import { Info, MapPin, CreditCard, ShoppingBag } from "lucide-react";
 import Navbar from "../../../components/Navbar";
 import Footer from "../../../components/Footer";
 import Button from "../../../components/Button";
+import Loading from "../../../components/Loading";
+import { useCartStore } from "../cart/cartStore";
+import { useAuthStore } from "../auth/authStore";
+import { addressApi, type UserAddressDto } from "../../../services/addressApi";
+import { orderApi, type CreateOrderRequest } from "../../../services/orderApi";
+import { cartApi } from "../../../services/cartApi";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
-interface SavedAddress {
-  id: string;
-  name: string;
-  district: string;
-  city: string;
-  gender: string;
-  phone: string;
-}
+type ShippingOption = "standard" | "express";
+type AddressState = "select" | "form";
 
-interface AddressForm {
-  fullName: string;
-  province: string;
-  ward: string;
-  addressDetail: string;
-  phone: string;
-}
-
-interface PromotionState {
-  selectedVoucher: Promotion | null;
-  discountAmount: number;
-  applyVoucher: (voucher: Promotion, currentTotal: number) => void;
-  clearVoucher: () => void;
-}
-
-const usePromotionStore = create<PromotionState>((set) => ({
-  selectedVoucher: null,
-  discountAmount: 0,
-
-  applyVoucher: (voucher: Promotion, currentTotal: number) => {
-    let discount: number;
-    
-    // Tính toán số tiền được giảm dựa trên chuỗi định dạng (Ví dụ: '15%' hoặc '$50')
-    if (voucher.value.includes('%')) {
-      const percentage = parseFloat(voucher.value.replace('%', ''));
-      discount = (currentTotal * percentage) / 100;
-    } else if (voucher.value.includes('$')) {
-      discount = parseFloat(voucher.value.replace('$', ''));
-    } else {
-      discount = parseFloat(voucher.value) || 0;
-    }
-
-    // Đảm bảo số tiền giảm không vượt quá tổng giá trị đơn hàng
-    if (discount > currentTotal) {
-      discount = currentTotal;
-    }
-
-    set({ selectedVoucher: voucher, discountAmount: discount });
-  },
-
-  clearVoucher: () => set({ selectedVoucher: null, discountAmount: 0 }),
-}));
-
-// ─── Mock data ────────────────────────────────────────────────────────────────
-const MOCK_SAVED_ADDRESS: SavedAddress = {
-  id: "1",
-  name: "Nguyễn Văn A (Địa chỉ thành viên)",
-  district: "Quận Bình Thạnh",
-  city: "TP Hồ Chí Minh",
-  gender: "Nam",
-  phone: "0123 456 789",
-};
-
-const ORDER_SUMMARY = {
-  itemCount: 3,
-  subtotal: "2.580.000 VND",
-  shipping: "0 VND",
-  total: "2.580.000 VND",
-  vatIncluded: "239.091 VND",
-};
-
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
+// ─── Shipping Options ─────────────────────────────────────────────────────────
 function ShippingOptions({
   selected,
   onChange,
 }: {
-  selected: "standard" | "express";
-  onChange: (v: "standard" | "express") => void;
+  selected: ShippingOption;
+  onChange: (v: ShippingOption) => void;
 }) {
   return (
     <div className="flex gap-3 mb-6">
-      {/* Standard */}
       <button
         type="button"
         onClick={() => onChange("standard")}
@@ -105,7 +40,6 @@ function ShippingOptions({
         </p>
       </button>
 
-      {/* Express */}
       <button
         type="button"
         onClick={() => onChange("express")}
@@ -115,13 +49,10 @@ function ShippingOptions({
             : "border-gray-200 bg-white hover:border-gray-400"
         }`}
       >
-        {/* Content */}
         <p className="text-sm font-medium">Giao hỏa tốc (2h)</p>
         <p className="text-xs text-gray-500 mt-0.2">
           Phí vận chuyển: 100.000 VND
         </p>
-
-        {/* Info icon (top-right) */}
         <span
           className="absolute top-1/2 -translate-y-1/2 right-3 text-gray-400 hover:text-gray-600 transition-colors"
           title="Giao hàng trong vòng 2 giờ (áp dụng nội thành, có thể thay đổi theo điều kiện thực tế)"
@@ -133,100 +64,227 @@ function ShippingOptions({
   );
 }
 
-function OrderSummary() {
-  const { discountAmount } = usePromotionStore();
+// ─── Order Summary (Right Column) ─────────────────────────────────────────────
+function OrderSummary({
+  subtotal,
+  shippingCost,
+  discountAmount,
+}: {
+  subtotal: number;
+  shippingCost: number;
+  discountAmount: number;
+}) {
+  const formatVND = (amount: number) =>
+    amount.toLocaleString("vi-VN") + " VND";
+
+  const total = subtotal + shippingCost - discountAmount;
+  const vatAmount = Math.round(total * 0.1);
+  const items = useCartStore((s) => s.items);
+
   return (
     <div className="bg-gray-50 border border-gray-200 p-5 h-fit sticky top-24">
-      {/* Header */}
       <div className="flex justify-between items-center pb-4 border-b border-gray-200">
         <span className="text-sm font-medium tracking-wide">Tổng đơn hàng</span>
-        <span className="text-sm font-medium">{ORDER_SUMMARY.itemCount} Sản Phẩm</span>
+        <span className="text-sm font-medium">
+          {items.reduce((s, i) => s + i.quantity, 0)} Sản Phẩm
+        </span>
       </div>
 
-      {/* Lines */}
       <div className="py-4 space-y-3 border-b border-gray-200">
         <div className="flex justify-between text-sm">
           <span className="text-gray-500">Tạm tính</span>
-          <span>{ORDER_SUMMARY.subtotal}</span>
+          <span>{formatVND(subtotal)}</span>
         </div>
         {discountAmount > 0 && (
           <div className="flex justify-between text-sm">
             <span className="text-gray-500">Giảm giá</span>
-            <span>-{discountAmount.toLocaleString('vi-VN')} VND</span>
+            <span>-{formatVND(discountAmount)}</span>
           </div>
         )}
         <div className="flex justify-between text-sm">
           <span className="text-gray-500">Phí vận chuyển</span>
-          <span>{ORDER_SUMMARY.shipping}</span>
+          <span>{formatVND(shippingCost)}</span>
         </div>
       </div>
 
-      {/* Total */}
       <div className="pt-4 pb-3 border-b border-gray-200">
         <div className="flex justify-between items-center">
           <span className="text-sm font-semibold">Tổng đơn đặt hàng</span>
-          <span className="text-sm font-semibold">{ORDER_SUMMARY.total}</span>
+          <span className="text-sm font-semibold">{formatVND(total)}</span>
         </div>
         <p className="text-xs text-gray-400 mt-1 text-right">
-          Đã bao gồm thuế giá trị gia tăng {ORDER_SUMMARY.vatIncluded}
+          Đã bao gồm thuế GTGT {formatVND(vatAmount)}
         </p>
       </div>
 
-      {/* Voucher */}
-      <button
-        type="button"
-        className="w-full flex items-center justify-between pt-4 text-sm text-gray-600 hover:text-black transition-colors group"
-      >
-        <div className="flex items-center gap-2">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <rect x="2" y="7" width="20" height="10" rx="1" />
-            <path d="M12 7v10M2 12h3m14 0h3" strokeLinecap="round" />
-          </svg>
-          <span>Phiếu giảm giá (1)</span>
-        </div>
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          className="group-hover:translate-x-0.5 transition-transform"
-        >
-          <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </button>
+      {/* Danh sách sản phẩm */}
+      <div className="py-4 space-y-2 border-b border-gray-200">
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+          Sản phẩm trong giỏ
+        </p>
+        {items.map((item, index) => (
+          <div key={index} className="flex items-center gap-2 text-xs text-gray-600">
+            {item.imageUrl && (
+              <img
+                src={item.imageUrl}
+                alt={item.name}
+                className="w-8 h-10 object-cover rounded"
+              />
+            )}
+            <div className="flex-1 min-w-0">
+              <p className="truncate">{item.name}</p>
+              <p className="text-gray-400">
+                {item.size && `Size: ${item.size}`}
+                {item.color && ` / Màu: ${item.color}`}
+                {` x${item.quantity}`}
+              </p>
+            </div>
+            <span className="font-medium">
+              {formatVND(item.price * item.quantity)}
+            </span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
 
-// ─── Address Form (State 1) ───────────────────────────────────────────────────
-function NewAddressForm({ onConfirm }: { onConfirm: () => void }) {
-  const [form, setForm] = useState<AddressForm>({
-    fullName: "",
-    province: "",
-    ward: "",
-    addressDetail: "",
-    phone: "",
-  });
+// ─── Select Address Form ──────────────────────────────────────────────────────
+function SelectAddress({
+  addresses,
+  selectedId,
+  onSelect,
+  onAddNew,
+}: {
+  addresses: UserAddressDto[];
+  selectedId: number | null;
+  onSelect: (id: number) => void;
+  onAddNew: () => void;
+}) {
+  return (
+    <div>
+      <h3 className="text-sm font-semibold mb-4">Địa chỉ giao hàng</h3>
+      <p className="text-xs text-gray-500 mb-4">
+        *Vui lòng kiểm tra kỹ địa chỉ của bạn. Sai lệch thông tin có thể khiến đơn hàng bị hủy hoặc giao chậm.
+      </p>
 
-  const handleChange = (field: keyof AddressForm, value: string) => {
+      {addresses.length === 0 ? (
+        <p className="text-sm text-gray-400 mb-4">
+          Bạn chưa có địa chỉ nào. Vui lòng thêm địa chỉ mới.
+        </p>
+      ) : (
+        <div className="space-y-3 mb-4">
+          {addresses.map((addr) => (
+            <div
+              key={addr.id}
+              onClick={() => onSelect(addr.id)}
+              className={`border p-4 cursor-pointer transition-colors ${
+                selectedId === addr.id
+                  ? "border-black bg-gray-50"
+                  : "border-gray-200 hover:border-gray-400"
+              }`}
+            >
+              <div className="flex items-start gap-3">
+                <div
+                  className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                    selectedId === addr.id
+                      ? "border-black"
+                      : "border-gray-300"
+                  }`}
+                >
+                  {selectedId === addr.id && (
+                    <div className="w-3 h-3 rounded-full bg-black" />
+                  )}
+                </div>
+                <div className="text-sm space-y-0.5">
+                  <p className="font-medium">
+                    {addr.receiverName}
+                    {addr.isDefault && (
+                      <span className="ml-2 text-xs text-gray-400">
+                        (Mặc định)
+                      </span>
+                    )}
+                  </p>
+                  <p className="text-gray-600">{addr.addressLine}</p>
+                  {addr.district && <p className="text-gray-600">{addr.district}</p>}
+                  {addr.province && <p className="text-gray-600">{addr.province}</p>}
+                  <p className="text-gray-600">{addr.phone}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <Button variant="outline" onClick={onAddNew} className="w-full">
+        + THÊM ĐỊA CHỈ MỚI
+      </Button>
+    </div>
+  );
+}
+
+// ─── New Address Form ─────────────────────────────────────────────────────────
+function NewAddressForm({
+  onConfirm,
+  onBack,
+}: {
+  onConfirm: () => void;
+  onBack: () => void;
+}) {
+  const [form, setForm] = useState({
+    receiverName: "",
+    phone: "",
+    province: "",
+    district: "",
+    ward: "",
+    addressLine: "",
+  });
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleChange = (field: string, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const isValid = Object.values(form).every((v) => v.trim() !== "");
+  const isValid = form.receiverName.trim() && form.phone.trim() && form.addressLine.trim();
+
+  const handleSubmit = async () => {
+    if (!isValid) return;
+    setSubmitting(true);
+    setError("");
+
+    try {
+      await addressApi.createAddress({
+        receiverName: form.receiverName,
+        phone: form.phone,
+        addressLine: form.addressLine,
+        ward: form.ward || undefined,
+        district: form.district || undefined,
+        province: form.province || undefined,
+        isDefault: false,
+      });
+      onConfirm();
+    } catch (err: any) {
+      setError(err?.response?.data?.message || "Không thể lưu địa chỉ. Vui lòng thử lại.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div>
-      <h3 className="text-sm font-semibold mb-1">Đăng ký địa chỉ mới</h3>
-      <p className="text-xs text-gray-500 mb-1">
-        *Vui lòng kiểm tra ký địa chỉ của bạn. Sai lệch thông tin có thể khiến đơn hàng bị hủy
-        hoặc giao chậm.
-      </p>
-      <p className="text-xs text-gray-400 mb-5 text-right">Bắt buộc *</p>
+      <div className="flex items-center gap-2 mb-4">
+        <button onClick={onBack} className="text-sm text-gray-500 hover:text-black cursor-pointer">
+          ← Quay lại
+        </button>
+        <h3 className="text-sm font-semibold">Thêm địa chỉ mới</h3>
+      </div>
+
+      {error && (
+        <p className="text-xs text-red-500 mb-3 bg-red-50 p-2">{error}</p>
+      )}
 
       <div className="space-y-4">
-        {/* Full name */}
         <div>
           <label className="text-xs font-medium text-gray-700 mb-1 block">
             Họ và Tên <span className="text-red-500">*</span>
@@ -234,57 +292,16 @@ function NewAddressForm({ onConfirm }: { onConfirm: () => void }) {
           <input
             type="text"
             placeholder="Vui lòng nhập họ và tên"
-            value={form.fullName}
-            onChange={(e) => handleChange("fullName", e.target.value)}
+            value={form.receiverName}
+            onChange={(e) => handleChange("receiverName", e.target.value)}
             className="w-full border border-gray-300 px-3 py-2.5 text-sm placeholder-gray-300 focus:outline-none focus:border-black transition-colors"
           />
         </div>
 
-        {/* Province */}
         <div>
           <label className="text-xs font-medium text-gray-700 mb-1 block">
-            Thành phố/Tỉnh <span className="text-red-500">*</span>
+            Số điện thoại <span className="text-red-500">*</span>
           </label>
-          <input
-            type="text"
-            placeholder="Vui lòng chọn 1 thành phố/tỉnh"
-            value={form.province}
-            onChange={(e) => handleChange("province", e.target.value)}
-            className="w-full border border-gray-300 px-3 py-2.5 text-sm placeholder-gray-300 focus:outline-none focus:border-black transition-colors"
-          />
-        </div>
-
-        {/* Ward */}
-        <div>
-          <label className="text-xs font-medium text-gray-700 mb-1 block">
-            Phường <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            placeholder="Vui lòng chọn phường của bạn"
-            value={form.ward}
-            onChange={(e) => handleChange("ward", e.target.value)}
-            className="w-full border border-gray-300 px-3 py-2.5 text-sm placeholder-gray-300 focus:outline-none focus:border-black transition-colors"
-          />
-        </div>
-
-        {/* Address detail */}
-        <div>
-          <label className="text-xs font-medium text-gray-700 mb-1 block">
-            Chi tiết địa chỉ <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            placeholder="Số nhà, số đường, toà nhà,..."
-            value={form.addressDetail}
-            onChange={(e) => handleChange("addressDetail", e.target.value)}
-            className="w-full border border-gray-300 px-3 py-2.5 text-sm placeholder-gray-300 focus:outline-none focus:border-black transition-colors"
-          />
-        </div>
-
-        {/* Phone */}
-        <div>
-          <label className="text-xs font-medium text-gray-700 mb-1 block">Số điện thoại</label>
           <input
             type="tel"
             placeholder="Vui lòng nhập số điện thoại"
@@ -294,14 +311,67 @@ function NewAddressForm({ onConfirm }: { onConfirm: () => void }) {
           />
         </div>
 
+        <div>
+          <label className="text-xs font-medium text-gray-700 mb-1 block">
+            Thành phố/Tỉnh
+          </label>
+          <input
+            type="text"
+            placeholder="Vui lòng nhập thành phố/tỉnh"
+            value={form.province}
+            onChange={(e) => handleChange("province", e.target.value)}
+            className="w-full border border-gray-300 px-3 py-2.5 text-sm placeholder-gray-300 focus:outline-none focus:border-black transition-colors"
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-xs font-medium text-gray-700 mb-1 block">
+              Quận/Huyện
+            </label>
+            <input
+              type="text"
+              placeholder="Quận/Huyện"
+              value={form.district}
+              onChange={(e) => handleChange("district", e.target.value)}
+              className="w-full border border-gray-300 px-3 py-2.5 text-sm placeholder-gray-300 focus:outline-none focus:border-black transition-colors"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-gray-700 mb-1 block">
+              Phường/Xã
+            </label>
+            <input
+              type="text"
+              placeholder="Phường/Xã"
+              value={form.ward}
+              onChange={(e) => handleChange("ward", e.target.value)}
+              className="w-full border border-gray-300 px-3 py-2.5 text-sm placeholder-gray-300 focus:outline-none focus:border-black transition-colors"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="text-xs font-medium text-gray-700 mb-1 block">
+            Chi tiết địa chỉ <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            placeholder="Số nhà, tên đường, toà nhà,..."
+            value={form.addressLine}
+            onChange={(e) => handleChange("addressLine", e.target.value)}
+            className="w-full border border-gray-300 px-3 py-2.5 text-sm placeholder-gray-300 focus:outline-none focus:border-black transition-colors"
+          />
+        </div>
+
         <div className="pt-2">
           <Button
             variant="primary-border"
-            onClick={onConfirm}
-            disabled={!isValid}
+            onClick={handleSubmit}
+            disabled={!isValid || submitting}
             className="w-fit px-10"
           >
-            XÁC NHẬN
+            {submitting ? "ĐANG LƯU..." : "XÁC NHẬN"}
           </Button>
         </div>
       </div>
@@ -309,146 +379,276 @@ function NewAddressForm({ onConfirm }: { onConfirm: () => void }) {
   );
 }
 
-// ─── Saved Address card (State 2) ─────────────────────────────────────────────
-function SavedAddressCard({
-  address,
-  onEdit,
-  onRegisterNew,
-  onContinue,
-}: {
-  address: SavedAddress;
-  onEdit: () => void;
-  onRegisterNew: () => void;
-  onContinue: () => void;
-}) {
+// ─── Payment Method (Step 2) ──────────────────────────────────────────────────
+function PaymentMethod() {
   return (
-    <div>
-      <h3 className="text-sm font-semibold mb-4">Địa chỉ giao hàng</h3>
-      <p className="text-xs text-gray-500 mb-4">
-        *Vui lòng kiểm tra ký địa chỉ của bạn. Sai lệch thông tin có thể khiến đơn hàng bị hủy
-        hoặc giao chậm.
+    <div className="mt-10">
+      <h2 className="text-base font-semibold mb-1">
+        <CreditCard size={18} className="inline mr-2" />
+        2. Phương thức thanh toán
+      </h2>
+      <p className="text-sm text-gray-400">
+        Vui lòng chọn phương thức thanh toán. Hiện tại chỉ hỗ trợ thanh toán khi nhận hàng (COD).
       </p>
-
-      {/* Saved card */}
-      <div className="border border-gray-200 p-4 mb-4 relative">
-        {/* Checkmark */}
-        <div className="flex items-start gap-3">
-          <div className="mt-0.5 w-5 h-5 rounded-full bg-black flex items-center justify-center flex-shrink-0">
+      <div className="mt-3 p-4 border border-gray-200 bg-gray-50">
+        <div className="flex items-center gap-3">
+          <div className="w-5 h-5 rounded-full bg-black flex items-center justify-center flex-shrink-0">
             <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
               <path d="M1 4l3 3 5-6" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
-          <div className="text-sm space-y-0.5">
-            <p className="font-medium">{address.name}</p>
-            <p className="text-gray-600">{address.district}</p>
-            <p className="text-gray-600">{address.gender}</p>
-            <p className="text-gray-600">{address.city}</p>
-            <p className="text-gray-600">{address.phone}</p>
+          <div>
+            <p className="text-sm font-medium">Thanh toán khi nhận hàng (COD)</p>
+            <p className="text-xs text-gray-400">Thanh toán bằng tiền mặt khi nhận được hàng</p>
           </div>
         </div>
-
-        {/* Edit / Current label */}
-        <div className="flex gap-3 mt-3 ml-8 text-xs">
-          <button
-            type="button"
-            onClick={onEdit}
-            className="underline text-gray-600 hover:text-black transition-colors"
-          >
-            Sửa
-          </button>
-          <span className="text-gray-300">|</span>
-          <span className="text-gray-400">Địa chỉ hiện tại</span>
-        </div>
-      </div>
-
-      {/* Action buttons */}
-      <div className="space-y-3">
-        <Button variant="outline" onClick={onRegisterNew} className="w-full">
-          ĐĂNG KÝ ĐỊA CHỈ MỚI
-        </Button>
-        <Button
-          variant="primary-border"
-          onClick={onContinue}
-          className="w-full"
-        >
-          TIẾP TỤC
-        </Button>
       </div>
     </div>
   );
 }
 
-// ─── Payment methods (Step 2) ─────────────────────────────────────────────────
-function PaymentMethod() {
-  return (
-    <div className="mt-10">
-      <h2 className="text-base font-semibold mb-1">2. Phương thức thanh toán</h2>
-      <p className="text-sm text-gray-400">Vui lòng chọn phương thức thanh toán.</p>
-    </div>
-  );
-}
-
-// ─── Main Page ────────────────────────────────────────────────────────────────
-type AddressState = "form" | "saved";
-
+// ─── Main Payment Page ────────────────────────────────────────────────────────
 export default function Payment() {
   const navigate = useNavigate();
-  const [shippingOption, setShippingOption] = useState<"standard" | "express">("standard");
-  const [addressState, setAddressState] = useState<AddressState>("form");
+  const { items } = useCartStore();
+  const { user } = useAuthStore();
 
-  // Simulate: toggle between states for demonstration
-  // In production, check if user has saved address from API
-  const hasSavedAddress = addressState === "saved";
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [shippingOption, setShippingOption] = useState<ShippingOption>("standard");
+  const [addressState, setAddressState] = useState<AddressState>("select");
+  const [addresses, setAddresses] = useState<UserAddressDto[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
 
-  const handleFormConfirm = () => {
-    setAddressState("saved");
+  const shippingCost = shippingOption === "express" ? 100000 : 50000;
+  const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+  const formatVND = (amount: number) =>
+    amount.toLocaleString("vi-VN") + " VND";
+
+  // Load addresses on mount
+  useEffect(() => {
+    const loadAddresses = async () => {
+      if (!user) {
+        navigate("/login");
+        return;
+      }
+      try {
+        const data = await addressApi.getMyAddresses();
+        setAddresses(data);
+        const defaultAddr = data.find((a) => a.isDefault) || data[0];
+        if (defaultAddr) setSelectedAddressId(defaultAddr.id);
+      } catch (err) {
+        console.warn("Không thể tải địa chỉ:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadAddresses();
+  }, [user, navigate]);
+
+  // Redirect to cart if empty
+  if (!user) {
+    navigate("/login");
+    return null;
+  }
+
+  if (items.length === 0) {
+    return (
+      <div className="min-h-screen flex flex-col bg-white">
+        <Navbar />
+        <div className="h-[80px]" />
+        <main className="flex-1 max-w-[1200px] mx-auto w-full px-4 py-20 text-center">
+          <ShoppingBag size={48} className="mx-auto text-gray-300 mb-4" />
+          <h1 className="text-xl font-semibold mb-4">Giỏ hàng trống</h1>
+          <p className="text-gray-500 mb-6">Vui lòng thêm sản phẩm vào giỏ trước khi thanh toán.</p>
+          <Button variant="gold" onClick={() => navigate("/collections")}>
+            MUA SẮM NGAY
+          </Button>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-white">
+        <Navbar />
+        <div className="h-[80px]" />
+        <main className="flex-1 flex items-center justify-center">
+          <Loading />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  const getSelectedAddress = () =>
+    addresses.find((a) => a.id === selectedAddressId) || null;
+
+const syncLocalItemsToServer = async (): Promise<boolean> => {
+    const userId = useAuthStore.getState().user?.id;
+    if (!userId) return false;
+
+    let serverProductIds = new Set<number>();
+
+    try {
+      // Try to fetch existing cart from server
+      const serverCart = await cartApi.getCartByUserId(userId);
+      serverProductIds = new Set(serverCart.items?.map(i => i.productId) ?? []);
+    } catch (err: any) {
+      // 404 means cart doesn't exist yet - that's OK, we'll create it by adding items
+      if (err?.response?.status !== 404) {
+        console.warn('Failed to fetch server cart:', err);
+      }
+    }
+
+    // Add items that exist locally but not on server
+    for (const item of items) {
+      const productId = parseInt(item.id, 10);
+      if (isNaN(productId)) continue;
+
+      if (!serverProductIds.has(productId)) {
+        try {
+          await cartApi.addToCart(userId, { productId, quantity: item.quantity });
+          serverProductIds.add(productId);
+        } catch (addErr) {
+          console.warn(`Failed to sync product ${productId} to server:`, addErr);
+        }
+      }
+    }
+
+    return serverProductIds.size > 0;
   };
 
-  const handleEdit = () => {
-    setAddressState("form");
+  const handlePlaceOrder = async () => {
+    const addr = getSelectedAddress();
+    if (!addr) {
+      setError("Vui lòng chọn địa chỉ giao hàng.");
+      return;
+    }
+
+    setSubmitting(true);
+    setError("");
+
+    try {
+      // Sync local items to server before placing order
+      if (user?.id) {
+        await syncLocalItemsToServer();
+      }
+
+      const orderData: CreateOrderRequest = {
+        shippingAddress: addr.addressLine,
+        city: addr.province || undefined,
+        state: addr.district || undefined,
+        phoneNumber: addr.phone,
+        country: "Vietnam",
+        notes: shippingOption === "express" ? "Giao hỏa tốc (2h)" : undefined,
+      };
+
+      const order = await orderApi.placeOrder(orderData);
+      localStorage.setItem("latestOrder", JSON.stringify(order));
+      useCartStore.getState().clearCart();
+      navigate("/order-success");
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.response?.data?.title ||
+        "Đặt hàng thất bại. Vui lòng thử lại.";
+      setError(msg);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <Navbar />
 
-      {/* Promo banner */}
-      <div className="h-[80px]"></div>
+      <div className="h-[80px]" />
 
       <div className="w-fit mx-auto px-10 py-2 bg-black text-white text-xs tracking-wide text-center">
         Miễn phí giao hàng tiêu chuẩn từ 500.000 VND | Freeship Hỏa tốc cho đơn từ 1.000.000 VND.
       </div>
 
       <main className="flex-1 max-w-[1200px] mx-auto w-full px-4 sm:px-6 lg:px-8 py-10">
-        <h1 className="text-xl font-semibold mb-8 tracking-wide">Thanh Toán</h1>
+        <h1 className="text-xl font-semibold mb-8 tracking-wide">
+          <MapPin size={20} className="inline mr-2" />
+          Thanh Toán
+        </h1>
+
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 text-sm rounded">
+            {error}
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-8 items-start">
-          {/* ── Left column ── */}
+          {/* ── Left Column ── */}
           <div>
-            {/* Section 1 */}
-            <div className="mb-2">
-              <h2 className="text-base font-semibold mb-5">1. Tùy chọn giao hàng</h2>
+            {/* Section 1: Shipping */}
+            <div className="mb-8">
+              <h2 className="text-base font-semibold mb-5">
+                <ShoppingBag size={18} className="inline mr-2" />
+                1. Tùy chọn giao hàng
+              </h2>
 
               <ShippingOptions selected={shippingOption} onChange={setShippingOption} />
 
-              {hasSavedAddress ? (
-                <SavedAddressCard
-                  address={MOCK_SAVED_ADDRESS}
-                  onEdit={handleEdit}
-                  onRegisterNew={handleEdit}
-                  onContinue={() => navigate("/order-success")}
+              <p className="text-xs text-gray-400 mb-3">
+                Phí vận chuyển: <strong>{formatVND(shippingCost)}</strong>
+              </p>
+
+              {addressState === "form" ? (
+                <NewAddressForm
+                  onConfirm={async () => {
+                    // Refresh addresses after adding new one
+                    try {
+                      const data = await addressApi.getMyAddresses();
+                      setAddresses(data);
+                      const newAddr = data[data.length - 1];
+                      if (newAddr) setSelectedAddressId(newAddr.id);
+                    } catch {}
+                    setAddressState("select");
+                  }}
+                  onBack={() => setAddressState("select")}
                 />
               ) : (
-                <NewAddressForm onConfirm={handleFormConfirm} />
+                <SelectAddress
+                  addresses={addresses}
+                  selectedId={selectedAddressId}
+                  onSelect={setSelectedAddressId}
+                  onAddNew={() => setAddressState("form")}
+                />
               )}
             </div>
 
-            {/* Section 2 */}
+            {/* Section 2: Payment */}
             <PaymentMethod />
+
+            {/* Place Order Button */}
+            <div className="mt-8">
+              <Button
+                variant="gold"
+                onClick={handlePlaceOrder}
+                disabled={submitting || !selectedAddressId}
+                className="w-full sm:w-auto px-12"
+              >
+                {submitting ? "ĐANG XỬ LÝ..." : "ĐẶT HÀNG"}
+              </Button>
+              <p className="text-xs text-gray-400 mt-2">
+                Bằng cách đặt hàng, bạn đồng ý với điều khoản và điều kiện của chúng tôi.
+              </p>
+            </div>
           </div>
 
-          {/* ── Right column: Order summary ── */}
-          <OrderSummary />
+          {/* ── Right Column: Order Summary ── */}
+          <OrderSummary
+            subtotal={subtotal}
+            shippingCost={shippingCost}
+            discountAmount={0}
+          />
         </div>
       </main>
 
@@ -456,3 +656,4 @@ export default function Payment() {
     </div>
   );
 }
+
