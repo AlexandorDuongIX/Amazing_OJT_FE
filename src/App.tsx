@@ -15,6 +15,7 @@ import { LoginPage, RegisterPage } from './pages/customer/auth/AuthPages'
 import WishlistPage from './pages/customer/wishlist/WishlistPage'
 
 import AdminLayout from './components/AdminLayout'
+import ProtectedRoute from './components/ProtectedRoute'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import ContentManagementPage from './pages/admin/ContentManagementPage'
 import CustomerManagement from './pages/admin/CustomerManagement'
@@ -235,9 +236,11 @@ function App() {
           <Route
             path="/admin/orders"
             element={
-              <AdminLayout>
-                <AdminOrders />
-              </AdminLayout>
+              <ProtectedRoute allowedRoles={['Admin', 'Manager', 'Staff']}>
+                <AdminLayout>
+                  <AdminOrders />
+                </AdminLayout>
+              </ProtectedRoute>
             }
           />
           <Route
@@ -302,9 +305,11 @@ function App() {
           <Route
             path="/staff/orders"
             element={
-              <AdminLayout role="staff">
-                <AdminOrders />
-              </AdminLayout>
+              <ProtectedRoute allowedRoles={['Admin', 'Manager', 'Staff']}>
+                <AdminLayout role="staff">
+                  <AdminOrders />
+                </AdminLayout>
+              </ProtectedRoute>
             }
           />
 

@@ -25,12 +25,11 @@ export default function OrderTable({
         <table className="w-full table-fixed text-left border-collapse">
           <thead>
             <tr className="font-body text-label-md uppercase tracking-wider text-on-surface-variant bg-surface-container-low">
-              <th className="p-4 font-semibold w-[14%]">Mã đơn hàng</th>
-              <th className="p-4 font-semibold w-[20%]">Khách hàng</th>
-              <th className="p-4 font-semibold w-[12%]">Ngày đặt</th>
-              <th className="p-4 font-semibold w-[20%]">Trạng thái</th>
-              <th className="p-4 font-semibold w-[12%]">Thanh toán</th>
-              <th className="p-4 font-semibold text-right w-[16%]">Tổng tiền</th>
+              <th className="p-4 font-semibold w-[18%]">Mã đơn hàng</th>
+              <th className="p-4 font-semibold w-[24%]">Khách hàng</th>
+              <th className="p-4 font-semibold w-[14%]">Ngày đặt</th>
+              <th className="p-4 font-semibold w-[24%]">Trạng thái</th>
+              <th className="p-4 font-semibold text-right w-[20%]">Tổng tiền</th>
             </tr>
           </thead>
           <tbody className="font-body text-body-md divide-y divide-outline-variant">

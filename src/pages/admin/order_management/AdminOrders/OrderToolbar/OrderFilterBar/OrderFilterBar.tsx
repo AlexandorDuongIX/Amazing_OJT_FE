@@ -1,17 +1,14 @@
 import type { AdminOrderStatus } from '@/types/adminOrder'
+import { STATUS_LABELS } from '../../OrderStatusSelect/OrderStatusSelect'
 
 interface OrderFilterBarProps {
   value: AdminOrderStatus | ''
   onChange: (next: AdminOrderStatus | '') => void
 }
 
-const STATUS_OPTIONS: { value: AdminOrderStatus; label: string }[] = [
-  { value: 'Pending', label: 'Pending' },
-  { value: 'Confirmed', label: 'Confirmed' },
-  { value: 'Shipping', label: 'Shipping' },
-  { value: 'Delivered', label: 'Delivered' },
-  { value: 'Cancelled', label: 'Cancelled' },
-]
+const STATUS_OPTIONS: { value: AdminOrderStatus; label: string }[] = (
+  ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled', 'Returned'] as AdminOrderStatus[]
+).map((value) => ({ value, label: STATUS_LABELS[value] }))
 
 export default function OrderFilterBar({ value, onChange }: OrderFilterBarProps) {
   return (

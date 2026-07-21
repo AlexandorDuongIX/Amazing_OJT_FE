@@ -2,6 +2,7 @@ import type { AdminOrder, AdminOrderStatus } from '@/types/adminOrder'
 import OrderStatusSelect from '../OrderStatusSelect/OrderStatusSelect'
 import OrderCustomerInfo from './OrderCustomerInfo/OrderCustomerInfo'
 import OrderItemsList from './OrderItemsList/OrderItemsList'
+import { formatOrderDate } from '../orderFormat'
 
 interface OrderDetailModalProps {
   order: AdminOrder | null
@@ -21,8 +22,8 @@ export default function OrderDetailModal({ order, onClose, onStatusChange }: Ord
       <div className="relative bg-surface-container-lowest border border-outline-variant w-full max-w-[640px] max-h-[85vh] overflow-y-auto p-8">
         <div className="flex items-start justify-between mb-6">
           <div>
-            <h3 className="font-headline text-[20px] font-bold text-primary">{order.id}</h3>
-            <p className="font-body text-[13px] text-on-surface-variant">{order.createdAt}</p>
+            <h3 className="font-headline text-[20px] font-bold text-primary">{order.orderNumber}</h3>
+            <p className="font-body text-[13px] text-on-surface-variant">{formatOrderDate(order.createdAt)}</p>
           </div>
           <button
             onClick={onClose}
@@ -41,7 +42,7 @@ export default function OrderDetailModal({ order, onClose, onStatusChange }: Ord
         </div>
 
         <div className="mb-6 pb-6 border-b border-outline-variant">
-          <OrderCustomerInfo customer={order.customer} paymentMethod={order.paymentMethod} />
+          <OrderCustomerInfo customer={order.customer} />
         </div>
 
         <div className="mb-6">

@@ -5,14 +5,24 @@ interface OrderStatusSelectProps {
   onChange: (next: AdminOrderStatus) => void
 }
 
-const STATUS_OPTIONS: AdminOrderStatus[] = ['Pending', 'Confirmed', 'Shipping', 'Delivered', 'Cancelled']
+const STATUS_OPTIONS: AdminOrderStatus[] = ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled', 'Returned']
+
+export const STATUS_LABELS: Record<AdminOrderStatus, string> = {
+  Pending: 'Chờ xử lý',
+  Processing: 'Đang xử lý',
+  Shipped: 'Đã giao vận',
+  Delivered: 'Đã giao hàng',
+  Cancelled: 'Đã hủy',
+  Returned: 'Trả hàng',
+}
 
 const SELECT_STYLES: Record<AdminOrderStatus, string> = {
   Pending: 'bg-surface-variant text-on-surface-variant',
-  Confirmed: 'bg-secondary-container text-on-secondary-container',
-  Shipping: 'bg-tertiary text-on-tertiary',
+  Processing: 'bg-secondary-container text-on-secondary-container',
+  Shipped: 'bg-tertiary text-on-tertiary',
   Delivered: 'bg-gold-subtle text-secondary',
   Cancelled: 'bg-error-subtle text-error',
+  Returned: 'bg-error-subtle text-error',
 }
 
 export default function OrderStatusSelect({ status, onChange }: OrderStatusSelectProps) {
@@ -29,7 +39,7 @@ export default function OrderStatusSelect({ status, onChange }: OrderStatusSelec
     >
       {STATUS_OPTIONS.map((option) => (
         <option key={option} value={option} className="bg-surface text-on-surface normal-case font-normal">
-          {option}
+          {STATUS_LABELS[option]}
         </option>
       ))}
     </select>
