@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
@@ -25,6 +25,7 @@ import PromotionManagement from './pages/admin/promotions/PromotionManagement'
 import BlogListPage from './pages/customer/blog/BlogListPage'
 import BlogDetailPage from './pages/customer/blog/BlogDetailPage'
 import ProductManagementPage from './pages/admin/products/ProductManagementPage'
+import ProductFormPage from './pages/admin/products/ProductFormPage'
 import InventoryPage from './pages/admin/InventoryPage'
 
 /* ── Scroll to top on every route change ── */
@@ -196,7 +197,31 @@ function App() {
             path="/admin/products"
             element={
               <AdminLayout>
-                <ProductManagementPage />
+                <ProductManagementPage role="admin" />
+              </AdminLayout>
+            }
+          />
+          <Route
+            path="/admin/products/new"
+            element={
+              <AdminLayout>
+                <ProductFormPage role="admin" />
+              </AdminLayout>
+            }
+          />
+          <Route
+            path="/admin/products/:productId/edit"
+            element={
+              <AdminLayout>
+                <ProductFormPage role="admin" />
+              </AdminLayout>
+            }
+          />
+          <Route
+            path="/admin/products/*"
+            element={
+              <AdminLayout>
+                <ProductManagementPage role="admin" />
               </AdminLayout>
             }
           />
@@ -263,7 +288,31 @@ function App() {
             path="/staff/products"
             element={
               <AdminLayout role="staff">
-                <ProductManagementPage />
+                <ProductManagementPage role="staff" />
+              </AdminLayout>
+            }
+          />
+          <Route
+            path="/staff/products/new"
+            element={
+              <AdminLayout role="staff">
+                <ProductFormPage role="staff" />
+              </AdminLayout>
+            }
+          />
+          <Route
+            path="/staff/products/:productId/edit"
+            element={
+              <AdminLayout role="staff">
+                <ProductFormPage role="staff" />
+              </AdminLayout>
+            }
+          />
+          <Route
+            path="/staff/products/*"
+            element={
+              <AdminLayout role="staff">
+                <ProductManagementPage role="staff" />
               </AdminLayout>
             }
           />

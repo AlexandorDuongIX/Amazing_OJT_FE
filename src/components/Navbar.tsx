@@ -5,6 +5,8 @@ import MiniCart from './MiniCart'
 import CartToast from './CartToast'
 import { useCartStore } from '../pages/customer/cart/cartStore'
 import { useAuthStore } from '../pages/customer/auth/authStore'
+import { fetchCategories } from '../services/productApi'
+import { buildCategoryRoutes } from '../utils/categorySlug'
 
 /* ============================================================
    Navbar Component — AMAZING Design System
@@ -23,18 +25,22 @@ interface NavLink {
   matchPrefix?: string
 }
 
-const navLinks: NavLink[] = [
+const fixedNavLinks: NavLink[] = [
   { label: 'Bộ sưu tập', to: '/collections', matchPrefix: '/collections' },
+  { label: 'Blog', to: '/blogs', matchPrefix: '/blogs' },
+]
+
+const fallbackCategoryLinks: NavLink[] = [
   { label: 'Nam', to: '/collections/nam', matchPrefix: '/collections/nam' },
   { label: 'Nữ', to: '/collections/nu', matchPrefix: '/collections/nu' },
   { label: 'Trẻ em', to: '/collections/tre-em', matchPrefix: '/collections/tre-em' },
-  { label: 'Blog', to: '/blogs', matchPrefix: '/blogs' },
 ]
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [categoryLinks, setCategoryLinks] = useState<NavLink[]>(fallbackCategoryLinks)
   const { items, toggleCart } = useCartStore()
   const totalItems = items.reduce((sum, i) => sum + i.quantity, 0)
 
@@ -43,8 +49,13 @@ export default function Navbar() {
 
   const isActive = (link: NavLink) => {
     if (link.to === '/collections') return location.pathname === '/collections'
-    return !!link.matchPrefix && location.pathname.startsWith(link.matchPrefix)
+    return !!link.matchPrefix && (
+      location.pathname === link.matchPrefix ||
+      location.pathname.startsWith(`${link.matchPrefix}/`)
+    )
   }
+
+  const navLinks = [fixedNavLinks[0], ...categoryLinks, fixedNavLinks[1]]
 
   useEffect(() => {
     const handleScroll = () => {
@@ -60,6 +71,33 @@ export default function Navbar() {
     window.addEventListener('click', handleClose)
     return () => window.removeEventListener('click', handleClose)
   }, [userMenuOpen])
+
+  useEffect(() => {
+    let disposed = false
+
+    fetchCategories()
+      .then((categories) => {
+        const activeCategories = categories.filter(
+          (category) => category.isActive && !category.isDeleted,
+        )
+        const liveCategoryLinks = buildCategoryRoutes(activeCategories).map(({ category, slug }) => ({
+          label: category.name,
+          to: `/collections/${slug}`,
+          matchPrefix: `/collections/${slug}`,
+        }))
+
+        if (!disposed && liveCategoryLinks.length > 0) {
+          setCategoryLinks(liveCategoryLinks)
+        }
+      })
+      .catch(() => {
+        // The stable fallback links remain visible when categories are unavailable.
+      })
+
+    return () => {
+      disposed = true
+    }
+  }, [])
 
   return (
     <>
@@ -87,8 +125,9 @@ export default function Navbar() {
               const active = isActive(link)
               return (
                 <Link
-                  key={link.label}
+                  key={link.to}
                   to={link.to}
+                  aria-current={active ? 'page' : undefined}
                   className={`relative font-label text-[14px] font-semibold uppercase tracking-[0.1em] transition-colors duration-300 pb-1 ${
                     active
                       ? 'text-primary'
@@ -230,8 +269,9 @@ export default function Navbar() {
                 const active = isActive(link)
                 return (
                   <Link
-                    key={link.label}
+                    key={link.to}
                     to={link.to}
+                    aria-current={active ? 'page' : undefined}
                     onClick={() => setMobileMenuOpen(false)}
                     className={`relative font-label text-[16px] font-semibold uppercase tracking-[0.1em] transition-colors w-fit ${active ? 'text-primary' : 'text-on-surface-variant hover:text-primary'
                       }`}

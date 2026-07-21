@@ -248,12 +248,12 @@ export default function AdminDashboard() {
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e0e0e0" />
                 <XAxis dataKey="label" tick={{fontFamily: 'inherit', fontSize: 12}} />
                 <YAxis 
-                  tickFormatter={(val) => (val / 1000000) + 'M'} 
+                  tickFormatter={(val: number) => `${val / 1_000_000}M`}
                   tick={{fontFamily: 'inherit', fontSize: 12}} 
                   width={60}
                 />
                 <Tooltip 
-                  formatter={(value: number) => [value.toLocaleString() + ' VNĐ', 'Doanh thu']}
+                  formatter={(value: any) => [Number(value || 0).toLocaleString() + ' VNĐ', 'Doanh thu']}
                   labelStyle={{color: '#000'}}
                 />
                 <Area type="monotone" dataKey="revenue" stroke="#735c00" fillOpacity={1} fill="url(#colorRevenue)" />

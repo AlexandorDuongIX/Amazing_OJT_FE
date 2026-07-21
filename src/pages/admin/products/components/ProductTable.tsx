@@ -1,12 +1,13 @@
 import { ImageOff, PackagePlus, PackageX, Pencil, Trash2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { getStockStatus } from '../stock'
-import type { InventorySummary, ProductListItem } from '../types'
+import type { InventorySummary, ProductListItem, ProductRouteBase } from '../types'
 import StockBadge from './StockBadge'
 
 interface ProductTableProps {
   products: ProductListItem[]
   inventory: Map<number, InventorySummary>
+  productBasePath: ProductRouteBase
   canWrite: boolean
   canManageStock: boolean
   loading: boolean
@@ -21,6 +22,7 @@ const formatVnd = (amount: number) => `${amount.toLocaleString('vi-VN')} VND`
 export default function ProductTable({
   products,
   inventory,
+  productBasePath,
   canWrite,
   canManageStock,
   loading,
@@ -92,7 +94,7 @@ export default function ProductTable({
                   <div className="inline-flex items-center gap-1">
                     {canWrite ? (
                       <Link
-                      to={`/admin/inventory/${product.id}/edit`}
+                      to={`${productBasePath}/${product.id}/edit`}
                       aria-label={`Edit ${product.name}`}
                       className={`inline-grid size-10 place-items-center border border-transparent text-[#444748] hover:border-[#c4c7c7] hover:text-black focus-visible:outline-2 focus-visible:outline-black ${busy ? 'pointer-events-none opacity-40' : ''}`}
                       >
