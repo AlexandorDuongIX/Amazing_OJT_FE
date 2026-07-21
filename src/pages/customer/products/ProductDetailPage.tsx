@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import type { ProductDetailDto, ProductListDto } from '../../../types/product'
-import { fetchProductById, fetchProducts } from '../../../services/productApi'
+import { CatalogApiError, fetchProductById, fetchProducts } from '../../../services/productApi'
 import { useCartStore } from '../cart/cartStore'
 
 /* ---------- Helpers ---------- */
@@ -10,9 +10,15 @@ const formatVND = (amount: number) => amount.toLocaleString('vi-VN') + ' ₫'
 const FALLBACK_IMAGE = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22800%22%20height%3D%221000%22%20viewBox%3D%220%200%20800%201000%22%3E%3Crect%20width%3D%22800%22%20height%3D%221000%22%20fill%3D%22%23e2e8f0%22%2F%3E%3Ctext%20x%3D%22400%22%20y%3D%22500%22%20font-family%3D%22sans-serif%22%20font-size%3D%2240%22%20fill%3D%22%2394a3b8%22%20text-anchor%3D%22middle%22%20dominant-baseline%3D%22middle%22%3ENo%20Image%3C%2Ftext%3E%3C%2Fsvg%3E'
 
 const getSafeImageUrl = (url?: string | null) => {
-  if (!url) return FALLBACK_IMAGE;
-  if (url.includes('placeholder.com') || url.includes('placehold.co')) return FALLBACK_IMAGE;
-  return url;
+  if (!url) return FALLBACK_IMAGE
+  if (url.includes('placeholder.com') || url.includes('placehold.co')) return FALLBACK_IMAGE
+  return url
+}
+
+const parseProductId = (value?: string) => {
+  if (!value || !/^\d+$/.test(value)) return null
+  const id = Number(value)
+  return Number.isSafeInteger(id) && id > 0 ? id : null
 }
 
 const COLOR_MAP: Record<string, string> = {
@@ -76,7 +82,11 @@ function AccordionRow({
 /* ---------- Skeleton ---------- */
 function ProductDetailSkeleton() {
   return (
-    <div className="max-w-[1220px] mx-auto px-4 md:px-8 py-6 md:py-10 animate-pulse">
+    <div
+      role="status"
+      aria-label="Đang tải sản phẩm"
+      className="max-w-[1220px] mx-auto px-4 md:px-8 py-6 md:py-10 animate-pulse"
+    >
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-12 items-start">
         <div className="space-y-4">
           <div className="aspect-[4/5] bg-surface-container rounded" />
@@ -92,53 +102,77 @@ function ProductDetailSkeleton() {
   )
 }
 
+type DetailResult =
+  | { requestKey: string; status: 'ready'; product: ProductDetailDto }
+  | { requestKey: string; status: 'not-found' | 'error' }
+
 /* ---------- Main Component ---------- */
 export default function ProductDetailPage() {
   const { productId } = useParams<{ productId: string }>()
   const navigate = useNavigate()
   const { addItem, showToast } = useCartStore()
 
-  const [product, setProduct] = useState<ProductDetailDto | null>(null)
   const [relatedProducts, setRelatedProducts] = useState<ProductListDto[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [requestVersion, setRequestVersion] = useState(0)
+  const routeProductId = parseProductId(productId)
+  const requestKey = routeProductId === null ? null : `${routeProductId}:${requestVersion}`
+  const [detailResult, setDetailResult] = useState<DetailResult | null>(null)
 
-  const [selectedColor, setSelectedColor] = useState('')
-  const [selectedSize, setSelectedSize] = useState('')
+  const [selectedVariantId, setSelectedVariantId] = useState<number | null>(null)
   const [openPanel, setOpenPanel] = useState<'description' | 'fabric' | 'delivery'>('description')
   const [mainImgError, setMainImgError] = useState(false)
 
   /* ── Fetch product by id ── */
   useEffect(() => {
-    if (!productId) return
-    setLoading(true)
-    setError(null)
-    setMainImgError(false)
+    if (routeProductId === null || requestKey === null) return
+    let active = true
 
-    fetchProductById(productId)
+    fetchProductById(routeProductId)
       .then((p) => {
-        setProduct(p)
-        const colors = [...new Set(p.variants?.map(v => v.color).filter(Boolean))]
-        const sizes = [...new Set(p.variants?.map(v => v.size).filter(Boolean))]
-        setSelectedColor((colors[0] as string) ?? '')
-        setSelectedSize((sizes[0] as string) ?? '')
+        if (!active) return
+        setDetailResult({ requestKey, status: 'ready', product: p })
+        setRelatedProducts([])
+        setSelectedVariantId(p.variants[0]?.id ?? null)
+        setMainImgError(false)
       })
-      .catch(() => setError('Không thể tải sản phẩm. Vui lòng thử lại.'))
-      .finally(() => setLoading(false))
-  }, [productId])
+      .catch((error: unknown) => {
+        if (!active) return
+        setDetailResult({
+          requestKey,
+          status: error instanceof CatalogApiError && error.code === 'not-found'
+            ? 'not-found'
+            : 'error',
+        })
+      })
+
+    return () => {
+      active = false
+    }
+  }, [requestKey, routeProductId])
+
+  const currentDetail = detailResult?.requestKey === requestKey ? detailResult : null
+  const loadState = routeProductId === null ? 'invalid' : (currentDetail?.status ?? 'loading')
+  const product = currentDetail?.status === 'ready' ? currentDetail.product : null
 
   /* ── Fetch related products (same category) ── */
   useEffect(() => {
     if (!product) return
+    let active = true
+
     fetchProducts({ pageSize: 4, categoryId: product.category?.id })
       .then((related) => {
+        if (!active) return
         setRelatedProducts(related.items.filter(p => p.id !== product.id))
       })
       .catch(() => {/* silently ignore related fetch errors */})
+
+    return () => {
+      active = false
+    }
   }, [product])
 
   /* ── Loading ── */
-  if (loading) {
+  if (loadState === 'loading') {
     return (
       <section className="w-full bg-background">
         <ProductDetailSkeleton />
@@ -146,13 +180,16 @@ export default function ProductDetailPage() {
     )
   }
 
-  /* ── Error ── */
-  if (error || !product) {
+  /* ── Invalid and not found ── */
+  if (loadState === 'invalid' || loadState === 'not-found') {
     return (
       <section className="w-full bg-background">
         <div className="max-w-[1220px] mx-auto px-4 md:px-8 py-20 text-center">
           <span className="material-symbols-outlined text-[48px] text-error mb-4 block">error</span>
-          <p className="font-body text-error text-[16px] mb-6">{error ?? 'Sản phẩm không tồn tại.'}</p>
+          <h1 className="font-headline text-[28px] font-medium text-primary">Không tìm thấy sản phẩm</h1>
+          <p className="mt-3 font-body text-error text-[16px] mb-6">
+            {loadState === 'invalid' ? 'Mã sản phẩm không hợp lệ.' : 'Sản phẩm không tồn tại.'}
+          </p>
           <button
             onClick={() => navigate(-1)}
             className="border border-primary px-8 py-3 font-label text-[13px] font-semibold uppercase tracking-widest text-primary hover:bg-primary hover:text-on-primary transition-colors duration-300"
@@ -164,40 +201,86 @@ export default function ProductDetailPage() {
     )
   }
 
-  const hasDiscount = product.discountPrice !== undefined && product.discountPrice !== null && product.discountPrice < product.basePrice
-  const displayPrice = hasDiscount ? product.discountPrice! : product.basePrice
-  const mainImage = mainImgError
-    ? FALLBACK_IMAGE
-    : getSafeImageUrl(product.images?.[0]?.url)
-
-  const handleAddToCart = () => {
-    addItem({
-      id: product.id.toString(), // Store expects string or we can update store later
-      name: product.name,
-      price: displayPrice,
-      imageUrl: product.images?.[0]?.url ?? '',
-      size: selectedSize,
-      color: selectedColor,
-      quantity: 1,
-    })
-    showToast(product.name, product.images?.[0]?.url ?? '', displayPrice)
+  /* ── Temporary error ── */
+  if (loadState === 'error') {
+    return (
+      <section className="w-full bg-background">
+        <div className="max-w-[1220px] mx-auto px-4 md:px-8 py-20 text-center">
+          <span className="material-symbols-outlined text-[48px] text-error mb-4 block">error</span>
+          <h1 className="font-headline text-[28px] font-medium text-primary">Không thể tải sản phẩm</h1>
+          <p className="mt-3 font-body text-error text-[16px] mb-6">
+            Đã có lỗi tạm thời. Vui lòng thử lại.
+          </p>
+          <button
+            type="button"
+            onClick={() => setRequestVersion((version) => version + 1)}
+            className="border border-primary px-8 py-3 font-label text-[13px] font-semibold uppercase tracking-widest text-primary hover:bg-primary hover:text-on-primary transition-colors duration-300"
+          >
+            Thử tải lại
+          </button>
+        </div>
+      </section>
+    )
   }
 
-  const handleBuyNow = () => {
+  if (!product) return null
+
+  const selectedVariant = product.variants.find((variant) => variant.id === selectedVariantId)
+  const productPrice = product.discountPrice !== null
+    && product.discountPrice > 0
+    && product.discountPrice < product.basePrice
+    ? product.discountPrice
+    : product.basePrice
+  const displayPrice = selectedVariant?.priceOverride !== null
+    && selectedVariant?.priceOverride !== undefined
+    && selectedVariant.priceOverride > 0
+    ? selectedVariant.priceOverride
+    : productPrice
+  const showBasePrice = displayPrice < product.basePrice
+  const thumbnailImage = product.images.find((image) => image.isThumbnail) ?? product.images[0]
+  const secondaryImage = product.images.find((image) => image.id !== thumbnailImage?.id)
+  const mainImage = mainImgError
+    ? FALLBACK_IMAGE
+    : getSafeImageUrl(thumbnailImage?.url)
+  const selectedColor = selectedVariant?.color ?? ''
+  const selectedSize = selectedVariant?.size ?? ''
+  const uniqueColors = [...new Set(product.variants.map((variant) => variant.color).filter((color): color is string => Boolean(color)))]
+  const availableSizes = [...new Set(
+    product.variants
+      .filter((variant) => variant.color === (selectedVariant?.color ?? null))
+      .map((variant) => variant.size)
+      .filter((size): size is string => Boolean(size)),
+  )]
+  const canPurchase = product.availableQuantity > 0
+    && (product.variants.length === 0 || selectedVariant !== undefined)
+
+  const handleAddToCart = () => {
+    if (!canPurchase) return
     addItem({
       id: product.id.toString(),
       name: product.name,
       price: displayPrice,
-      imageUrl: product.images?.[0]?.url ?? '',
+      imageUrl: mainImage,
+      size: selectedSize,
+      color: selectedColor,
+      quantity: 1,
+    })
+    showToast(product.name, mainImage, displayPrice)
+  }
+
+  const handleBuyNow = () => {
+    if (!canPurchase) return
+    addItem({
+      id: product.id.toString(),
+      name: product.name,
+      price: displayPrice,
+      imageUrl: mainImage,
       size: selectedSize,
       color: selectedColor,
       quantity: 1,
     })
     navigate('/payment')
   }
-
-  const uniqueColors = [...new Set(product.variants?.map(v => v.color).filter(Boolean))] as string[]
-  const uniqueSizes = [...new Set(product.variants?.map(v => v.size).filter(Boolean))] as string[]
 
   return (
     <section className="w-full bg-background">
@@ -223,16 +306,19 @@ export default function ProductDetailPage() {
             <div className="overflow-hidden bg-surface-container-low">
               <img
                 src={mainImage}
-                alt={product.name}
+                alt={`Ảnh chính của ${product.name}`}
                 onError={() => setMainImgError(true)}
                 className="w-full aspect-[4/5] object-cover object-center"
               />
             </div>
-            {getSafeImageUrl(product.images?.[1]?.url) !== FALLBACK_IMAGE && (
+            {secondaryImage && getSafeImageUrl(secondaryImage.url) !== FALLBACK_IMAGE && (
               <div className="hidden md:block overflow-hidden bg-surface-container-low">
                 <img
-                  src={getSafeImageUrl(product.images?.[1]?.url)}
-                  alt={product.name}
+                  src={getSafeImageUrl(secondaryImage.url)}
+                  alt={`Ảnh bổ sung của ${product.name}`}
+                  onError={(event) => {
+                    event.currentTarget.src = FALLBACK_IMAGE
+                  }}
                   className="w-full aspect-[4/5] object-cover object-center"
                 />
               </div>
@@ -245,10 +331,10 @@ export default function ProductDetailPage() {
               <h1 className="font-headline text-[24px] md:text-[34px] font-medium leading-tight text-primary">
                 {product.name}
               </h1>
-              {hasDiscount ? (
+              {showBasePrice ? (
                 <div className="flex items-center gap-3 mt-2">
                   <span className="font-body text-[16px] md:text-[18px] font-semibold text-error">
-                    {formatVND(product.discountPrice!)}
+                    {formatVND(displayPrice)}
                   </span>
                   <span className="font-body text-[14px] text-on-surface-variant line-through">
                     {formatVND(product.basePrice)}
@@ -256,9 +342,16 @@ export default function ProductDetailPage() {
                 </div>
               ) : (
                 <p className="mt-1.5 md:mt-2 font-body text-[14px] md:text-[17px] text-on-surface-variant">
-                  {formatVND(product.basePrice)}
+                  {formatVND(displayPrice)}
                 </p>
               )}
+              <p
+                className={`mt-2 font-label text-[11px] font-semibold uppercase tracking-[0.16em] ${product.availableQuantity > 0 ? 'text-on-surface-variant' : 'text-error'}`}
+              >
+                {product.availableQuantity > 0
+                  ? `Còn ${product.availableQuantity} sản phẩm`
+                  : 'Hết hàng'}
+              </p>
             </div>
 
             {/* Colors */}
@@ -277,10 +370,14 @@ export default function ProductDetailPage() {
                       <button
                         key={color}
                         type="button"
-                        onClick={() => setSelectedColor(color)}
+                        onClick={() => {
+                          const variant = product.variants.find((item) => item.color === color)
+                          setSelectedVariantId(variant?.id ?? null)
+                        }}
                         className={`h-5 w-5 md:h-6 md:w-6 rounded-full border transition-all ${isActive ? 'border-primary ring-2 ring-primary/20 ring-offset-2 ring-offset-background' : 'border-[#d7d2cf]'}`}
                         style={{ background: getCssColor(color) }}
-                        aria-label={color}
+                        aria-label={`Chọn màu ${color}`}
+                        aria-pressed={isActive}
                       />
                     )
                   })}
@@ -289,7 +386,7 @@ export default function ProductDetailPage() {
             )}
 
             {/* Sizes */}
-            {uniqueSizes.length > 0 && (
+            {availableSizes.length > 0 && (
               <div>
                 <div className="mb-3 flex items-end justify-between gap-4">
                   <span className="font-label text-[10px] md:text-[11px] font-semibold uppercase tracking-[0.22em] text-on-surface-variant">
@@ -303,14 +400,21 @@ export default function ProductDetailPage() {
                   </button>
                 </div>
                 <div className="grid grid-cols-4 gap-2 md:gap-3">
-                  {uniqueSizes.map((size) => {
+                  {availableSizes.map((size) => {
                     const isActive = selectedSize === size
                     return (
                       <button
                         key={size}
                         type="button"
-                        onClick={() => setSelectedSize(size)}
+                        onClick={() => {
+                          const variant = product.variants.find((item) => (
+                            item.color === (selectedVariant?.color ?? null) && item.size === size
+                          ))
+                          setSelectedVariantId(variant?.id ?? null)
+                        }}
                         className={`h-10 md:h-11 border font-label text-[12px] md:text-[13px] font-semibold uppercase tracking-[0.18em] transition-colors ${isActive ? 'border-primary bg-primary text-on-primary' : 'border-[#cfc9c6] bg-background text-primary hover:border-primary'}`}
+                        aria-label={`Chọn kích cỡ ${size}`}
+                        aria-pressed={isActive}
                       >
                         {size}
                       </button>
@@ -325,14 +429,16 @@ export default function ProductDetailPage() {
               <button
                 type="button"
                 onClick={handleAddToCart}
-                className="h-11 md:h-12 w-full border border-primary bg-background font-label text-[11px] md:text-[12px] font-semibold uppercase tracking-[0.22em] text-primary transition-colors hover:bg-primary hover:text-on-primary"
+                disabled={!canPurchase}
+                className="h-11 md:h-12 w-full border border-primary bg-background font-label text-[11px] md:text-[12px] font-semibold uppercase tracking-[0.22em] text-primary transition-colors hover:bg-primary hover:text-on-primary disabled:cursor-not-allowed disabled:border-on-surface-variant/30 disabled:text-on-surface-variant/50 disabled:hover:bg-background"
               >
                 Thêm Vào Giỏ Hàng
               </button>
               <button
                 type="button"
                 onClick={handleBuyNow}
-                className="h-11 md:h-12 w-full bg-primary font-label text-[11px] md:text-[12px] font-semibold uppercase tracking-[0.22em] text-on-primary transition-colors hover:bg-[#111111]"
+                disabled={!canPurchase}
+                className="h-11 md:h-12 w-full bg-primary font-label text-[11px] md:text-[12px] font-semibold uppercase tracking-[0.22em] text-on-primary transition-colors hover:bg-[#111111] disabled:cursor-not-allowed disabled:bg-on-surface-variant/30"
               >
                 Mua Ngay
               </button>
@@ -353,7 +459,7 @@ export default function ProductDetailPage() {
                 open={openPanel === 'fabric'}
                 onToggle={() => setOpenPanel(openPanel === 'fabric' ? 'delivery' : 'fabric')}
               >
-                Cotton
+                Thông tin chung của cửa hàng: Cotton
               </AccordionRow>
 
               <AccordionRow
@@ -361,7 +467,7 @@ export default function ProductDetailPage() {
                 open={openPanel === 'delivery'}
                 onToggle={() => setOpenPanel(openPanel === 'delivery' ? 'description' : 'delivery')}
               >
-                Giao hàng 3-5 ngày
+                Thông tin chung của cửa hàng: Giao hàng 3-5 ngày
               </AccordionRow>
             </div>
           </aside>
@@ -389,6 +495,9 @@ export default function ProductDetailPage() {
                     <img
                       src={getSafeImageUrl(item.thumbnailUrl || item.imageUrl)}
                       alt={item.name}
+                      onError={(event) => {
+                        event.currentTarget.src = FALLBACK_IMAGE
+                      }}
                       className="aspect-[3/4] w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                     />
                   </div>

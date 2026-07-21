@@ -1,7 +1,17 @@
 import axios from 'axios';
 
+const DEFAULT_API_BASE_URL = 'https://localhost:57867/api';
+
+export function normalizeApiBaseUrl(value?: string): string {
+  const trimmed = value?.trim().replace(/\/+$/, '') ?? '';
+  if (!trimmed) return DEFAULT_API_BASE_URL;
+
+  const withoutRepeatedApiSuffix = trimmed.replace(/(?:\/api)+$/i, '');
+  return `${withoutRepeatedApiSuffix}/api`;
+}
+
 const axiosClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://localhost:57867/api',
+  baseURL: normalizeApiBaseUrl(import.meta.env.VITE_API_BASE_URL),
   headers: {
     'Content-Type': 'application/json',
   },
@@ -22,10 +32,9 @@ axiosClient.interceptors.request.use(
   }
 );
 
-// Interceptors for response
+// Every caller receives the response body rather than an Axios response wrapper.
 axiosClient.interceptors.response.use(
   (response) => {
-    // Return data directly if needed, or just return response
     return response.data;
   },
   (error) => {

@@ -5,14 +5,20 @@ import ProductFilters from './components/ProductFilters'
 import ProductPagination from './components/ProductPagination'
 import ProductTable from './components/ProductTable'
 import SummaryCards from './components/SummaryCards'
+import type { ManagementRole, ProductRouteBase } from './types'
 import {
   draftFromFilters,
   PRODUCT_PAGE_SIZE,
   useProductManagement,
 } from './useProductManagement'
 
-export default function ProductManagementPage() {
-  const page = useProductManagement()
+interface ProductManagementPageProps {
+  role: ManagementRole
+}
+
+export default function ProductManagementPage({ role }: ProductManagementPageProps) {
+  const page = useProductManagement(role)
+  const productBasePath: ProductRouteBase = role === 'admin' ? '/admin/products' : '/staff/products'
 
   return (
     <div className="space-y-8">
@@ -22,7 +28,7 @@ export default function ProductManagementPage() {
             <p className="mt-2 text-[11px] uppercase tracking-[0.15em] text-[#444748]">Trang chủ &nbsp;/&nbsp; <strong className="text-black">Inventory</strong></p>
           </div>
           {page.canWrite ? (
-            <Link to="/admin/inventory/new" aria-label="Add new product" className="inline-flex min-h-14 items-center justify-center gap-3 bg-black px-7 text-xs uppercase tracking-[0.16em] text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black">
+            <Link to={`${productBasePath}/new`} aria-label="Add new product" className="inline-flex min-h-14 items-center justify-center gap-3 bg-black px-7 text-xs uppercase tracking-[0.16em] text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black">
               <Plus size={16} strokeWidth={1.5} /> Thêm sản phẩm mới
             </Link>
           ) : (
@@ -33,7 +39,7 @@ export default function ProductManagementPage() {
         </header>
 
         {page.successMessage ? <div role="status" className="border-l-4 border-[#735c00] bg-[#fff7d8] px-5 py-4 text-sm">{page.successMessage}</div> : null}
-        {!page.canWrite ? <div role="note" className="border-l-4 border-[#735c00] bg-[#fff7d8] px-5 py-4 text-sm">An Admin or Staff token is required for create, edit, stock, and delete actions. Your current view remains read-only.</div> : null}
+        {!page.canWrite ? <div role="note" className="border-l-4 border-[#735c00] bg-[#fff7d8] px-5 py-4 text-sm">A valid login token and a matching Admin or Staff role are required for create, edit, stock, and delete actions. Your current view remains read-only.</div> : null}
 
         <SummaryCards total={page.products.totalItems} {...page.stockCounts} />
 
@@ -58,6 +64,7 @@ export default function ProductManagementPage() {
             <ProductTable
               products={page.products.items}
               inventory={page.inventoryByProduct}
+              productBasePath={productBasePath}
               canWrite={page.canWrite}
               canManageStock={page.canManageStock}
               loading={page.productsLoading}

@@ -1,23 +1,33 @@
 export interface VariantSummaryDto {
   id: number;
   sku: string;
-  color?: string;
-  size?: string;
-  priceOverride?: number;
+  color: string | null;
+  size: string | null;
+  priceOverride: number | null;
 }
 
 export interface VariantDetailDto {
   id: number;
   sku: string;
-  color?: string;
-  size?: string;
+  color: string | null;
+  size: string | null;
   price: number;
-  priceOverride?: number;
+  priceOverride: number | null;
 }
 
-export interface CategoryDto {
+export interface CategorySummaryDto {
   id: number;
   name: string;
+}
+
+export interface CategoryDto extends CategorySummaryDto {
+  description: string | null;
+  imageUrl: string | null;
+  parentCategoryId: number | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string | null;
+  isDeleted: boolean;
 }
 
 export interface ImageDto {
@@ -29,31 +39,66 @@ export interface ImageDto {
 export interface ProductListDto {
   id: number;
   name: string;
-  sku?: string;
-  brand?: string;
-  color?: string;
-  size?: string;
+  description?: string | null;
+  sku?: string | null;
+  brand?: string | null;
+  color?: string | null;
+  size?: string | null;
   basePrice: number;
   price: number;
-  isActive: boolean;
-  imageUrl?: string;
-  category?: CategoryDto;
-  thumbnailUrl?: string;
+  discountPrice?: number | null;
+  isActive?: boolean;
+  imageUrl?: string | null;
+  category?: CategorySummaryDto | null;
+  thumbnailUrl?: string | null;
   availableQuantity: number;
   variantsSummary: VariantSummaryDto[];
+  requiresVariantSelection: boolean;
+}
+
+export interface ProductSearchResultDto {
+  id: number;
+  name: string;
+  description: string | null;
+  basePrice: number;
+  price: number;
+  discountPrice: number | null;
+  brand: string | null;
+  color: string | null;
+  size: string | null;
+  category: CategorySummaryDto | null;
+  thumbnailUrl: string | null;
+  availableQuantity: number;
 }
 
 export interface ProductDetailDto {
   id: number;
   name: string;
-  description?: string;
+  description: string | null;
   basePrice: number;
-  discountPrice?: number;
-  category?: CategoryDto;
+  discountPrice: number | null;
+  category: CategorySummaryDto | null;
   images: ImageDto[];
   variants: VariantDetailDto[];
   availableQuantity: number;
-  brand?: string; // Adding since it might be needed, BE Product model has Brand
+}
+
+export interface ProductListQueryParams {
+  page?: number;
+  pageSize?: number;
+  categoryId?: number;
+  minPrice?: number;
+  maxPrice?: number;
+  size?: string;
+  color?: string;
+  sort?: string;
+  sortBy?: string;
+  sortDirection?: string;
+}
+
+export interface ProductSearchQueryParams extends ProductListQueryParams {
+  searchTerm?: string;
+  brand?: string;
 }
 
 export interface PagedResult<T> {

@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useRef, useState, type FormEvent } from 'react'
 import type { Category, ProductDetail, ProductFormValues } from './types'
 import { validateProductForm } from './form'
 import CreationOnlyFields from './components/CreationOnlyFields'
@@ -29,6 +29,7 @@ export default function ProductForm({
 }: ProductFormProps) {
   const [values, setValues] = useState(initialValues)
   const [errors, setErrors] = useState<string[]>([])
+  const submissionGuard = useRef(false)
   const setField = (field: keyof Pick<ProductFormValues, 'name' | 'description' | 'regularPrice' | 'discountPrice' | 'categoryId' | 'initialStock'>, value: string) =>
     setValues((current) => ({ ...current, [field]: value }))
 
@@ -36,8 +37,13 @@ export default function ProductForm({
     event.preventDefault()
     const nextErrors = validateProductForm(values, mode, reservedQuantity)
     setErrors(nextErrors)
-    if (nextErrors.length > 0) return
-    await onSubmit(values)
+    if (nextErrors.length > 0 || !canWrite || submitting || submissionGuard.current) return
+    submissionGuard.current = true
+    try {
+      await onSubmit(values)
+    } finally {
+      submissionGuard.current = false
+    }
   }
 
   return (
@@ -111,7 +117,7 @@ export default function ProductForm({
         </section>
       ) : null}
 
-      {!canWrite ? <div role="note" className="border-l-4 border-[#735c00] bg-[#fff7d8] px-5 py-4 text-sm">An Admin or Staff token is required before this form can be saved. Entered data will remain in the form.</div> : null}
+      {!canWrite ? <div role="note" className="border-l-4 border-[#735c00] bg-[#fff7d8] px-5 py-4 text-sm">A valid login token and a matching Admin or Staff role are required before this form can be saved. Entered data will remain in the form.</div> : null}
 
       <div className="flex justify-end border-t border-[#c4c7c7]/30 pt-6">
         <button

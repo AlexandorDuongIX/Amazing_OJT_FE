@@ -1,5 +1,9 @@
 export type StockStatus = 'in-stock' | 'low-stock' | 'out-of-stock'
 
+export type ManagementRole = 'admin' | 'staff'
+
+export type ProductRouteBase = '/admin/products' | '/staff/products'
+
 export interface Category {
   id: number
   name: string

@@ -13,7 +13,7 @@ import type {
   UpdateProductInput,
 } from './types'
 
-const TOKEN_KEY = 'amazing_admin_token'
+const TOKEN_KEY = 'token'
 
 export class ProductApiError extends Error {
   code: ProductApiErrorCode
@@ -38,11 +38,11 @@ function apiUrl(path: string): string {
 }
 
 function readAdminToken(): string {
-  const token = window.sessionStorage.getItem(TOKEN_KEY)?.trim()
+  const token = window.localStorage.getItem(TOKEN_KEY)?.trim()
   if (!token) {
     throw new ProductApiError(
       'missing-token',
-      'An Admin or Staff token is required. Add it to this browser session before saving changes.',
+      'An Admin or Staff login token is required before saving changes.',
     )
   }
   return token
@@ -65,10 +65,11 @@ function responseMessage(error: unknown): string | undefined {
 
 function toProductApiError(error: unknown): ProductApiError {
   if (error instanceof ProductApiError) return error
-  const status =
+  const response =
     error && typeof error === 'object' && 'response' in error
-      ? (error as { response?: { status?: number } }).response?.status
+      ? (error as { response?: { status?: number } }).response
       : undefined
+  const status = response?.status
   const detail = responseMessage(error)
 
   if (status === 400) return new ProductApiError('validation', detail ?? 'The submitted product data is invalid.', status)
@@ -79,6 +80,9 @@ function toProductApiError(error: unknown): ProductApiError {
   if (status === 409) return new ProductApiError('conflict', detail ?? 'The change conflicts with existing product data.', status)
   if (typeof status === 'number' && status >= 500) {
     return new ProductApiError('server', 'The server could not complete the request. Please try again.', status)
+  }
+  if (response !== undefined) {
+    return new ProductApiError('unknown', detail ?? 'The product request could not be completed.', status)
   }
   if (error && typeof error === 'object' && 'request' in error) {
     return new ProductApiError('network', 'The product service could not be reached. Check the backend connection.')
@@ -96,9 +100,14 @@ async function execute<T>(request: Promise<{ data: T }>): Promise<T> {
 }
 
 function compactParams(filters: ProductFilters): Record<string, string | number> {
-  return Object.fromEntries(
-    Object.entries(filters).filter(([, value]) => value !== undefined && value !== ''),
-  ) as Record<string, string | number>
+  const entries = Object.entries(filters).flatMap(([key, value]) => {
+    if (typeof value === 'string') {
+      const trimmed = value.trim()
+      return trimmed ? [[key, trimmed]] : []
+    }
+    return value === undefined ? [] : [[key, value]]
+  })
+  return Object.fromEntries(entries) as Record<string, string | number>
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -109,28 +118,166 @@ function invalidResponse(resource: string): ProductApiError {
   return new ProductApiError('server', `The ${resource} service returned an invalid response.`)
 }
 
-function isProductListItem(value: unknown): value is ProductListItem {
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value)
+}
+
+function isPositiveInteger(value: unknown): value is number {
+  return typeof value === 'number' && Number.isInteger(value) && value > 0
+}
+
+function isPositiveNumber(value: unknown): value is number {
+  return isFiniteNumber(value) && value > 0
+}
+
+function isNonNegativeNumber(value: unknown): value is number {
+  return isFiniteNumber(value) && value >= 0
+}
+
+function isNullableNonNegativeNumber(value: unknown): value is number | null | undefined {
+  return value === undefined || value === null || isNonNegativeNumber(value)
+}
+
+function isNonNegativeInteger(value: unknown): value is number {
+  return typeof value === 'number' && Number.isInteger(value) && value >= 0
+}
+
+function isOptionalString(value: unknown): value is string | null | undefined {
+  return value === undefined || value === null || typeof value === 'string'
+}
+
+function isCategory(value: unknown): value is Category | null | undefined {
+  return (
+    value === undefined ||
+    value === null ||
+    (isRecord(value) &&
+      isFiniteNumber(value.id) &&
+      typeof value.name === 'string')
+  )
+}
+
+function isProductDetailCategory(value: unknown): value is Category | null | undefined {
+  return (
+    value === undefined ||
+    value === null ||
+    (isRecord(value) &&
+      isPositiveInteger(value.id) &&
+      typeof value.name === 'string' &&
+      isOptionalString(value.description) &&
+      isOptionalString(value.imageUrl) &&
+      (value.parentCategoryId === undefined || value.parentCategoryId === null || isPositiveInteger(value.parentCategoryId)) &&
+      (value.isActive === undefined || typeof value.isActive === 'boolean'))
+  )
+}
+
+function isProductImage(value: unknown): boolean {
   return (
     isRecord(value) &&
-    typeof value.id === 'number' &&
-    typeof value.name === 'string' &&
-    typeof value.price === 'number' &&
-    typeof value.availableQuantity === 'number'
+    isPositiveInteger(value.id) &&
+    typeof value.url === 'string' &&
+    typeof value.isThumbnail === 'boolean'
   )
+}
+
+function isProductVariantDetail(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    isPositiveInteger(value.id) &&
+    typeof value.sku === 'string' &&
+    Boolean(value.sku.trim()) &&
+    isOptionalString(value.color) &&
+    isOptionalString(value.size) &&
+    isNullableNonNegativeNumber(value.priceOverride) &&
+    isPositiveNumber(value.price)
+  )
+}
+
+function isProductDetail(value: unknown): value is ProductDetail {
+  return (
+    isRecord(value) &&
+    isPositiveInteger(value.id) &&
+    typeof value.name === 'string' &&
+    Boolean(value.name.trim()) &&
+    isOptionalString(value.description) &&
+    isPositiveNumber(value.basePrice) &&
+    isNullableNonNegativeNumber(value.discountPrice) &&
+    isProductDetailCategory(value.category) &&
+    Array.isArray(value.images) &&
+    value.images.every(isProductImage) &&
+    Array.isArray(value.variants) &&
+    value.variants.every(isProductVariantDetail) &&
+    isNonNegativeNumber(value.availableQuantity)
+  )
+}
+
+function isVariantSummary(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    isFiniteNumber(value.id) &&
+    typeof value.sku === 'string' &&
+    isOptionalString(value.color) &&
+    isOptionalString(value.size) &&
+    (value.priceOverride === undefined || value.priceOverride === null || isFiniteNumber(value.priceOverride))
+  )
+}
+
+function normalizeProductListItem(value: unknown): ProductListItem | undefined {
+  if (
+    !isRecord(value) ||
+    !isFiniteNumber(value.id) ||
+    value.id <= 0 ||
+    typeof value.name !== 'string' ||
+    !value.name.trim() ||
+    !isFiniteNumber(value.basePrice) ||
+    value.basePrice <= 0 ||
+    !isFiniteNumber(value.price) ||
+    !isFiniteNumber(value.availableQuantity) ||
+    !isOptionalString(value.description) ||
+    !isOptionalString(value.thumbnailUrl) ||
+    !isCategory(value.category) ||
+    (value.discountPrice !== undefined && value.discountPrice !== null && !isFiniteNumber(value.discountPrice)) ||
+    (value.variantsSummary !== undefined &&
+      (!Array.isArray(value.variantsSummary) || !value.variantsSummary.every(isVariantSummary)))
+  ) {
+    return undefined
+  }
+
+  const price = value.price > 0
+    ? value.price
+    : isFiniteNumber(value.discountPrice) && value.discountPrice > 0 && value.discountPrice < value.basePrice
+      ? value.discountPrice
+      : value.basePrice
+
+  return {
+    id: value.id,
+    name: value.name,
+    ...(value.description !== undefined ? { description: value.description } : {}),
+    basePrice: value.basePrice,
+    price,
+    ...(value.discountPrice !== undefined ? { discountPrice: value.discountPrice } : {}),
+    ...(value.category !== undefined ? { category: value.category } : {}),
+    ...(value.thumbnailUrl !== undefined ? { thumbnailUrl: value.thumbnailUrl } : {}),
+    availableQuantity: value.availableQuantity,
+    variantsSummary: Array.isArray(value.variantsSummary) ? value.variantsSummary : [],
+  }
 }
 
 function isInventoryRecord(value: unknown): value is InventoryRecord {
   return (
     isRecord(value) &&
-    typeof value.id === 'number' &&
-    typeof value.productId === 'number' &&
-    typeof value.quantity === 'number' &&
-    typeof value.reservedQuantity === 'number'
+    isPositiveInteger(value.id) &&
+    isPositiveInteger(value.productId) &&
+    isNonNegativeInteger(value.quantity) &&
+    isNonNegativeInteger(value.reservedQuantity) &&
+    (value.warehouseId === undefined || value.warehouseId === null || isPositiveInteger(value.warehouseId)) &&
+    isOptionalString(value.location) &&
+    isOptionalString(value.lastRestockDate) &&
+    isOptionalString(value.notes)
   )
 }
 
 export function hasAdminToken(): boolean {
-  return Boolean(window.sessionStorage.getItem(TOKEN_KEY)?.trim())
+  return Boolean(window.localStorage.getItem(TOKEN_KEY)?.trim())
 }
 
 export async function getProducts(filters: ProductFilters): Promise<PagedResult<ProductListItem>> {
@@ -139,23 +286,27 @@ export async function getProducts(filters: ProductFilters): Promise<PagedResult<
   const data = await execute<unknown>(axios.get(apiUrl(path), { params: compactParams(filters) }))
   if (
     !isRecord(data) ||
-    typeof data.page !== 'number' ||
-    typeof data.pageSize !== 'number' ||
-    typeof data.totalItems !== 'number' ||
-    !Array.isArray(data.items) ||
-    !data.items.every(isProductListItem)
+    !isPositiveInteger(data.page) ||
+    !isPositiveInteger(data.pageSize) ||
+    !isNonNegativeInteger(data.totalItems) ||
+    !Array.isArray(data.items)
   ) {
     throw invalidResponse('product')
   }
-  return data as unknown as PagedResult<ProductListItem>
+  const items = data.items.map(normalizeProductListItem)
+  if (items.some((item) => item === undefined)) throw invalidResponse('product')
+  return {
+    page: data.page,
+    pageSize: data.pageSize,
+    totalItems: data.totalItems,
+    items: items as ProductListItem[],
+  }
 }
 
 export async function getProduct(productId: number): Promise<ProductDetail> {
   const data = await execute<unknown>(axios.get(apiUrl(`/products/${productId}`)))
-  if (!isRecord(data) || typeof data.id !== 'number' || typeof data.name !== 'string' || !Array.isArray(data.images) || !Array.isArray(data.variants)) {
-    throw invalidResponse('product detail')
-  }
-  return data as unknown as ProductDetail
+  if (!isProductDetail(data)) throw invalidResponse('product detail')
+  return data
 }
 
 export async function createProduct(input: CreateProductInput): Promise<ProductWriteResult> {
@@ -165,7 +316,15 @@ export async function createProduct(input: CreateProductInput): Promise<ProductW
 }
 
 export async function updateProduct(productId: number, input: UpdateProductInput): Promise<ProductWriteResult> {
-  const data = await execute<unknown>(axios.put(apiUrl(`/products/${productId}`), { id: productId, ...input }, authorizationConfig()))
+  const body = {
+    id: productId,
+    name: input.name,
+    description: input.description,
+    price: input.price,
+    discountPrice: input.discountPrice,
+    categoryId: input.categoryId,
+  }
+  const data = await execute<unknown>(axios.put(apiUrl(`/products/${productId}`), body, authorizationConfig()))
   if (!isRecord(data) || typeof data.id !== 'number' || typeof data.name !== 'string') throw invalidResponse('product')
   return data as unknown as ProductWriteResult
 }
@@ -195,11 +354,15 @@ export async function getInventoryByProduct(productId: number): Promise<Inventor
 }
 
 export async function createInventory(input: InventoryWriteInput): Promise<InventoryRecord> {
-  return execute(axios.post(apiUrl('/inventories'), input, authorizationConfig()))
+  const data = await execute<unknown>(axios.post(apiUrl('/inventories'), input, authorizationConfig()))
+  if (!isInventoryRecord(data)) throw invalidResponse('inventory')
+  return data
 }
 
 export async function updateInventory(inventoryId: number, input: InventoryWriteInput): Promise<InventoryRecord> {
-  return execute(
+  const data = await execute<unknown>(
     axios.put(apiUrl(`/inventories/${inventoryId}`), { ...input, id: inventoryId }, authorizationConfig()),
   )
+  if (!isInventoryRecord(data)) throw invalidResponse('inventory')
+  return data
 }

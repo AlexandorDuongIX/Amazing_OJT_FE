@@ -67,8 +67,13 @@ export function validateProductForm(
     const normalizedSkus = values.variants.map((variant) => variant.sku.trim().toLowerCase()).filter(Boolean)
     if (values.variants.some((variant) => !variant.sku.trim())) errors.push('Variant SKU is required for every variant row.')
     if (new Set(normalizedSkus).size !== normalizedSkus.length) errors.push('Variant SKUs must be unique.')
-    if (values.variants.some((variant) => variant.priceOverride && Number(variant.priceOverride) <= 0)) {
-      errors.push('Variant price overrides must be greater than zero.')
+    if (values.variants.some((variant) => {
+      const value = variant.priceOverride.trim()
+      if (!value) return false
+      const priceOverride = Number(value)
+      return !Number.isFinite(priceOverride) || priceOverride <= 0
+    })) {
+      errors.push('Variant price overrides must be finite numbers greater than zero.')
     }
     if (values.images.some((image) => !validImageUrl(image.imageUrl.trim()))) {
       errors.push('Each image must use a valid HTTP(S) or root-relative URL.')
@@ -84,12 +89,15 @@ function optional(value: string): string | undefined {
 export function buildCreateProductInput(values: ProductFormValues): CreateProductInput {
   const selectedThumbnail = values.images.findIndex((image) => image.isThumbnail)
   const thumbnailIndex = selectedThumbnail >= 0 ? selectedThumbnail : 0
-  const variants: CreateProductVariantInput[] = values.variants.map((variant) => ({
-    sku: variant.sku.trim(),
-    color: optional(variant.color),
-    size: optional(variant.size),
-    priceOverride: variant.priceOverride ? Number(variant.priceOverride) : undefined,
-  }))
+  const variants: CreateProductVariantInput[] = values.variants.map((variant) => {
+    const priceOverride = variant.priceOverride.trim()
+    return {
+      sku: variant.sku.trim(),
+      color: optional(variant.color),
+      size: optional(variant.size),
+      priceOverride: priceOverride ? Number(priceOverride) : undefined,
+    }
+  })
   const images: CreateProductImageInput[] = values.images.map((image, index) => ({
     imageUrl: image.imageUrl.trim(),
     isThumbnail: index === thumbnailIndex,
