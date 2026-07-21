@@ -253,7 +253,7 @@ export default function ProductListPage() {
   useEffect(() => {
     setLoading(true)
     setError(null)
-    
+
     let minPrice: number | undefined;
     let maxPrice: number | undefined;
     if (priceRange === 'duoi-300k') maxPrice = 300000;
@@ -379,6 +379,7 @@ export default function ProductListPage() {
       {!error && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 md:gap-x-[24px] gap-y-12 md:gap-y-16">
           {products.map((product) => (
+
             <ProductCard
               key={product.id}
               product={product}

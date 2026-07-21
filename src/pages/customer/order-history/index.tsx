@@ -1,21 +1,27 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import type { Order } from '@/types/order'
-import { MOCK_ORDERS } from './mockOrders'
+import { useOrderHistoryStore } from './orderHistoryStore'
 import OrderCard from './OrderCard'
 import OrderFilterTabs from './OrderFilterTabs'
+import OrderDetailModal from './OrderDetailModal'
 import OrderPagination from '../../../components/Pagination'
 
 const PAGE_SIZE = 6
 
 export default function OrderHistoryPage() {
+  const { orders, loading, error, fetchMyOrders } = useOrderHistoryStore()
   const [activeTab, setActiveTab] = useState('Tất cả')
   const [currentPage, setCurrentPage] = useState(1)
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetchMyOrders()
+  }, [fetchMyOrders])
 
   const filteredOrders =
     activeTab === 'Tất cả'
-      ? MOCK_ORDERS
-      : MOCK_ORDERS.filter(o => o.status === activeTab)
+      ? orders
+      : orders.filter(o => o.status === activeTab)
 
   const totalPages = Math.ceil(filteredOrders.length / PAGE_SIZE)
   const displayedOrders = filteredOrders.slice(
@@ -23,13 +29,14 @@ export default function OrderHistoryPage() {
     currentPage * PAGE_SIZE,
   )
 
+  const selectedOrder = useMemo(
+    () => orders.find(o => o.id === selectedOrderId) ?? null,
+    [orders, selectedOrderId],
+  )
+
   function handleTabChange(tab: string) {
     setActiveTab(tab)
     setCurrentPage(1)
-  }
-
-  function handleViewDetail(_order: Order) {
-    // TODO: open order detail modal
   }
 
   return (
@@ -57,7 +64,13 @@ export default function OrderHistoryPage() {
         <div className="flex flex-col">
           <OrderFilterTabs activeTab={activeTab} onTabChange={handleTabChange} />
 
-          {displayedOrders.length === 0 ? (
+          {error && (
+            <p className="font-label text-[14px] text-error bg-error-subtle px-4 py-3 mt-6">{error}</p>
+          )}
+
+          {loading ? (
+            <p className="py-20 text-center font-label text-[14px] text-muted">Đang tải lịch sử đơn hàng...</p>
+          ) : displayedOrders.length === 0 ? (
             <div className="py-20 flex flex-col items-center gap-3 text-center">
               <span className="material-symbols-outlined text-[48px] text-muted">inbox</span>
               <p className="font-label text-[16px] text-muted">Không có đơn hàng nào</p>
@@ -68,7 +81,7 @@ export default function OrderHistoryPage() {
                 <OrderCard
                   key={order.id}
                   order={order}
-                  onViewDetail={handleViewDetail}
+                  onViewDetail={(o) => setSelectedOrderId(o.id)}
                 />
               ))}
             </div>
@@ -84,6 +97,8 @@ export default function OrderHistoryPage() {
         </div>
 
       </div>
+
+      <OrderDetailModal order={selectedOrder} onClose={() => setSelectedOrderId(null)} />
     </div>
   )
 }

@@ -12,7 +12,7 @@ export default function OrderCard({ order, onViewDetail }: OrderCardProps) {
       {/* Header */}
       <div className="flex justify-between items-start border-b border-divider pb-4">
         <div className="flex flex-col gap-1">
-          <span className="font-label text-[16px] font-bold text-on-background">{order.id}</span>
+          <span className="font-label text-[16px] font-bold text-on-background">{order.orderNumber}</span>
           <span className="font-label text-[14px] text-muted">Ngày đặt: {order.date}</span>
         </div>
         <OrderStatusBadge status={order.status} />

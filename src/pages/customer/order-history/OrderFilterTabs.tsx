@@ -1,4 +1,15 @@
-const TABS = ['Tất cả', 'Đang xử lý', 'Đã giao', 'Đã hủy', 'Trả hàng/Hoàn tiền'] as const
+import type { OrderStatus } from '@/types/order'
+import { STATUS_LABELS } from '@/components/OrderStatusBadge'
+
+const TABS: { value: OrderStatus | 'Tất cả'; label: string }[] = [
+  { value: 'Tất cả', label: 'Tất cả' },
+  { value: 'Pending', label: STATUS_LABELS.Pending },
+  { value: 'Processing', label: STATUS_LABELS.Processing },
+  { value: 'Shipped', label: STATUS_LABELS.Shipped },
+  { value: 'Delivered', label: STATUS_LABELS.Delivered },
+  { value: 'Cancelled', label: STATUS_LABELS.Cancelled },
+  { value: 'Returned', label: STATUS_LABELS.Returned },
+]
 
 interface OrderFilterTabsProps {
   activeTab: string
@@ -11,15 +22,15 @@ export default function OrderFilterTabs({ activeTab, onTabChange }: OrderFilterT
       <div className="flex gap-8 pt-4 px-6 overflow-x-auto">
         {TABS.map(tab => (
           <button
-            key={tab}
-            onClick={() => onTabChange(tab)}
+            key={tab.value}
+            onClick={() => onTabChange(tab.value)}
             className={`pb-4 font-label text-[14px] whitespace-nowrap border-b-2 transition-colors cursor-pointer ${
-              activeTab === tab
+              activeTab === tab.value
                 ? 'border-gold font-bold text-on-background'
                 : 'border-transparent font-normal text-muted hover:text-on-background'
             }`}
           >
-            {tab}
+            {tab.label}
           </button>
         ))}
       </div>

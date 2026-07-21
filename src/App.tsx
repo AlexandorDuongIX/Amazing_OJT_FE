@@ -13,6 +13,7 @@ import OrderSuccessPage from './pages/customer/checkout/OrderSuccessPage'
 import OrderHistoryPage from './pages/customer/order-history'
 import { LoginPage, RegisterPage } from './pages/customer/auth/AuthPages'
 import WishlistPage from './pages/customer/wishlist/WishlistPage'
+import ProtectedRoute from './components/ProtectedRoute'
 
 import AdminLayout from './components/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
@@ -167,9 +168,11 @@ function App() {
           <Route
             path="/orders"
             element={
-              <CustomerLayout>
-                <OrderHistoryPage />
-              </CustomerLayout>
+              <ProtectedRoute allowedRoles={['Customer']}>
+                <CustomerLayout>
+                  <OrderHistoryPage />
+                </CustomerLayout>
+              </ProtectedRoute>
             }
           />
 
